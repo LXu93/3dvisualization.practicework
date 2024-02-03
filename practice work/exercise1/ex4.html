@@ -86,7 +86,7 @@ function init(){
   controls.listenToKeyEvents( window ); // optional
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0x333333 );
+  scene.background = new THREE.Color( 0xaaaaaa );
 
   {
     const color = 0xFFFFFF;
@@ -94,8 +94,11 @@ function init(){
     const light = new THREE.DirectionalLight(color, intensity);
     light.position.set(-1, 2, 4);
     scene.add(light);
-  }
+    const ambient = new THREE.AmbientLight( 0xdddddd ); // soft white light
+    scene.add( ambient );
+   
 
+}
 }
 
 function main() 
@@ -104,75 +107,74 @@ function main()
   buildMolde();
   requestAnimationFrame(render);
 }
+
 function buildMolde(){  
   
   const bodyGeometry = new THREE.BoxGeometry(bodylength,bodyheight,bodyweidth);
-  const body = new THREE.Mesh(bodyGeometry,new THREE.MeshNormalMaterial());
-  
-
   const jointGeometry = new THREE.SphereGeometry(1,16,16);
   const thighGeometry = new THREE.CylinderGeometry(thighradius,calfradius,thighlenght);
   const calfGeometry = new THREE.CylinderGeometry(calfradius,footradius,thighlenght);
-
-  const calfJoint = new THREE.Mesh(jointGeometry,new THREE.MeshNormalMaterial());
-  calfJoint.scale.set(calfradius,calfradius,calfradius);
-  const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshNormalMaterial());
-  const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshNormalMaterial());
-  legJoint.scale.set(thighradius,thighradius,thighradius);
-  const calfMain = new THREE.Mesh(calfGeometry,new THREE.MeshNormalMaterial());
-  const foot = new THREE.Mesh(jointGeometry,new THREE.MeshNormalMaterial());
-  foot.scale.set(footradius,footradius,footradius);
-  const armBaseGeometry = new THREE.CylinderGeometry(baseradius,baseradius,baseheight);
-  const armBaseCylinder = new THREE.Mesh(armBaseGeometry,new THREE.MeshNormalMaterial());
-  const armBaseJoint = new THREE.Mesh(jointGeometry,new THREE.MeshNormalMaterial());
-  armBaseJoint.scale.set(baseradius,baseradius,baseradius);
   const armGeometry = new THREE.BoxGeometry(armwidth,armlength,armthinckness);
-  const armPart1 = new THREE.Mesh(armGeometry,new THREE.MeshNormalMaterial());
+  const armBaseGeometry = new THREE.CylinderGeometry(baseradius,baseradius,baseheight);
   const armJointGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,armthinckness);
-  const armJoint = new THREE.Mesh(armJointGeometry,new THREE.MeshNormalMaterial());
-  armJoint.rotation.x = Math.PI/2;
-  const armPart2 = new THREE.Mesh(armGeometry,new THREE.MeshNormalMaterial());
   const wristGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,wristlength);
-  const wristBase = new THREE.Mesh(wristGeometry,new THREE.MeshNormalMaterial());
   const wristJointGeometry = new THREE.SphereGeometry(armwidth/2*1.2,16,16,0, Math.PI * 2, 0, Math.PI * 0.5);
-  const wristJoint = new THREE.Mesh(wristJointGeometry,new THREE.MeshNormalMaterial());
+  const palmGeometry = new THREE.BoxGeometry(armwidth*1.2,palmlength,palmthickness);
+  const fingerGeometry = new THREE.BoxGeometry(armwidth*1.2,fingerlength,palmthickness);
+  const fingerJointGeometry = new THREE.CylinderGeometry(palmthickness/2,palmthickness/2,armwidth*1.2);
+
+  const body = new THREE.Mesh(bodyGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
+ 
+  const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
+  const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
+  legJoint.scale.set(thighradius,thighradius,thighradius);
+    const calfMain = new THREE.Mesh(calfGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  const calfJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2})); 
+  calfJoint.scale.set(calfradius,calfradius,calfradius);
+  const foot = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  foot.scale.set(footradius,footradius,footradius);
+  const armBaseCylinder = new THREE.Mesh(armBaseGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
+  const armBaseJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
+  armBaseJoint.scale.set(baseradius,baseradius,baseradius);
+  const armPart1 = new THREE.Mesh(armGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  const armJoint = new THREE.Mesh(armJointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2}));
+  armJoint.rotation.x = Math.PI/2;
+  const armPart2 = new THREE.Mesh(armGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  const wristBase = new THREE.Mesh(wristGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
+  const wristJoint = new THREE.Mesh(wristJointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
   wristJoint.rotation.z = Math.PI;
-  
-const palmGeometry = new THREE.BoxGeometry(armwidth*1.2,palmlength,palmthickness);
-const fingerGeometry = new THREE.BoxGeometry(armwidth*1.2,fingerlength,palmthickness);//palmthickness);
-const fingerJointGeometry = new THREE.CylinderGeometry(palmthickness/2,palmthickness/2,armwidth*1.2);
-const fingerJoint = new THREE.Mesh(fingerJointGeometry,new THREE.MeshNormalMaterial());
-fingerJoint.rotation.z = Math.PI/2;
-const palmPart_r = new THREE.Mesh(palmGeometry,new THREE.MeshNormalMaterial());
-const finger = new THREE.Mesh(fingerGeometry,new THREE.MeshNormalMaterial()); 
+  const fingerJoint = new THREE.Mesh(fingerJointGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  fingerJoint.rotation.z = Math.PI/2;
+  const palmPart_r = new THREE.Mesh(palmGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  const finger = new THREE.Mesh(fingerGeometry,new THREE.MeshPhongMaterial({color:0x696969})); 
 
- finger_r = new THREE.Group();
- finger_r.add(fingerJoint);
- finger_r.add(finger);
- finger.position.y = fingerlength/2;
-finger_l = finger_r.clone();
+  finger_r = new THREE.Group();
+  finger_r.add(fingerJoint);
+  finger_r.add(finger);
+  finger.position.y = fingerlength/2;
+  finger_l = finger_r.clone();
 
-palm_r = new THREE.Group();
-palm_r.add(fingerJoint.clone());
-palm_r.add(palmPart_r);
-palm_r.add(finger_r);
-palmPart_r.position.y = palmlength/2;
-finger_r.position.y = palmlength;
-palm_r.rotation.x = initialPalmAngle;
-finger_r.rotation.x = -initialPalmAngle;
+  palm_r = new THREE.Group();
+  palm_r.add(fingerJoint.clone());
+  palm_r.add(palmPart_r);
+  palm_r.add(finger_r);
+  palmPart_r.position.y = palmlength/2;
+  finger_r.position.y = palmlength;
+  palm_r.rotation.x = initialPalmAngle;
+  finger_r.rotation.x = -initialPalmAngle;
 
-palm_l = new THREE.Group();
-palm_l.add(fingerJoint.clone());
-const palmPart_l = palmPart_r.clone();
-palm_l.add(palmPart_l);
-palm_l.add(finger_l);
-palmPart_l.position.y = palmlength/2;
-finger_l.position.y = palmlength;
-palm_l.rotation.x = -initialPalmAngle;
-finger_l.rotation.x = initialPalmAngle;
+  palm_l = new THREE.Group();
+  palm_l.add(fingerJoint.clone());
+  const palmPart_l = palmPart_r.clone();
+  palm_l.add(palmPart_l);
+  palm_l.add(finger_l);
+  palmPart_l.position.y = palmlength/2;
+  finger_l.position.y = palmlength;
+  palm_l.rotation.x = -initialPalmAngle;
+  finger_l.rotation.x = initialPalmAngle;
 
-wrist = new THREE.Group();
-wrist.add(wristBase);
+  wrist = new THREE.Group();
+  wrist.add(wristBase);
   wrist.add(palm_l);
   wrist.add(palm_r);
   wristBase.position.y = wristlength/2;
@@ -182,7 +184,6 @@ wrist.add(wristBase);
   hand = new THREE.Group();
   hand.add(wristJoint);
   hand.add(wrist);
- 
 
   forearm = new THREE.Group();
   forearm.add(armJoint);
@@ -205,7 +206,6 @@ wrist.add(wristBase);
   armBase.add(armBaseJoint);
   armBaseJoint.position.y = baseheight/2;
 
-
   calf_rf = new THREE.Group();
   calf_rf.add(calfJoint);
   calf_rf.add(calfMain);
@@ -223,7 +223,6 @@ wrist.add(wristBase);
   leg_rf.add(calf_rf);
   calf_rf.position.y=-thighlenght
   thigh_rf.position.y = -thighlenght/2
-
   leg_rf.rotation.z = initialThighAngle;
   calf_rf.rotation.z = -initialThighAngle*2;
 
@@ -234,11 +233,10 @@ wrist.add(wristBase);
   leg_lf.add(calf_lf);
   calf_lf.position.y=-thighlenght
   thigh_lf.position.y = -thighlenght/2
-
   leg_lf.rotation.z = initialThighAngle;
   calf_lf.rotation.z = -initialThighAngle*2;
 
-  
+
   leg_rh = new THREE.Group();
   leg_rh.add(legJoint.clone());
   const thigh_rh = thigh_rf.clone();
@@ -246,7 +244,6 @@ wrist.add(wristBase);
   leg_rh.add(calf_rh);
   calf_rh.position.y=-thighlenght
   thigh_rh.position.y = -thighlenght/2
-
   leg_rh.rotation.z = initialThighAngle;
   calf_rh.rotation.z = -initialThighAngle*2;
 
@@ -257,12 +254,10 @@ wrist.add(wristBase);
   leg_lh.add(calf_lh);
   calf_lh.position.y=-thighlenght
   thigh_lh.position.y = -thighlenght/2
-
   leg_lh.rotation.z = initialThighAngle;
   calf_lh.rotation.z = -initialThighAngle;
 
   robot = new THREE.Group();
-
   robot.add(leg_rf);
   robot.add(leg_lf); 
   robot.add(leg_rh); 
@@ -278,6 +273,7 @@ wrist.add(wristBase);
   leg_lh.position.set(-bodylength/2+3,legHeight,-(bodyweidth/2+thighradius));
   armBase.position.set(bodylength/2-1.5,legHeight+bodyheight/4*3+baseheight/2,0)
   arm.position.set(bodylength/2-1.5,legHeight+bodyheight/4*3+baseheight,0)
+  
   scene.add(robot)
   robot.position.set(-30,0,0);
 
@@ -308,7 +304,7 @@ wrist.add(wristBase);
 
 function createMarks(){
   const material = new THREE.LineBasicMaterial({
-	color: 0xffffff
+	color: 0x666666
 });
 
 const points = [];
