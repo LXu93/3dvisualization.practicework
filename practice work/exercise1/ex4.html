@@ -94,9 +94,8 @@ function init(){
     const light = new THREE.DirectionalLight(color, intensity);
     light.position.set(-1, 2, 4);
     scene.add(light);
-    const ambient = new THREE.AmbientLight( 0xdddddd ); // soft white light
-    scene.add( ambient );
-   
+    const ambient = new THREE.AmbientLight( 0xbababa ); 
+    scene.add(ambient);
 
 }
 }
@@ -116,37 +115,37 @@ function buildMolde(){
   const calfGeometry = new THREE.CylinderGeometry(calfradius,footradius,thighlenght);
   const armGeometry = new THREE.BoxGeometry(armwidth,armlength,armthinckness);
   const armBaseGeometry = new THREE.CylinderGeometry(baseradius,baseradius,baseheight);
-  const armJointGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,armthinckness);
+  const armJointGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,armthinckness+0.1);
   const wristGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,wristlength);
   const wristJointGeometry = new THREE.SphereGeometry(armwidth/2*1.2,16,16,0, Math.PI * 2, 0, Math.PI * 0.5);
   const palmGeometry = new THREE.BoxGeometry(armwidth*1.2,palmlength,palmthickness);
   const fingerGeometry = new THREE.BoxGeometry(armwidth*1.2,fingerlength,palmthickness);
   const fingerJointGeometry = new THREE.CylinderGeometry(palmthickness/2,palmthickness/2,armwidth*1.2);
 
-  const body = new THREE.Mesh(bodyGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
+  const body = new THREE.Mesh(bodyGeometry,new THREE.MeshPhongMaterial({color:0xffef3d,shininess:60,specular:0x606060}));
  
-  const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
-  const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xffef3d}));
+  const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
+  const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
   legJoint.scale.set(thighradius,thighradius,thighradius);
-    const calfMain = new THREE.Mesh(calfGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+    const calfMain = new THREE.Mesh(calfGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
   const calfJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2})); 
   calfJoint.scale.set(calfradius,calfradius,calfradius);
   const foot = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
   foot.scale.set(footradius,footradius,footradius);
-  const armBaseCylinder = new THREE.Mesh(armBaseGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
-  const armBaseJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
+  const armBaseCylinder = new THREE.Mesh(armBaseGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a,shininess:50,specular:0xaaaaaa}));
+  const armBaseJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a,shininess:50,specular:0xaaaaaa}));
   armBaseJoint.scale.set(baseradius,baseradius,baseradius);
   const armPart1 = new THREE.Mesh(armGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
   const armJoint = new THREE.Mesh(armJointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2}));
   armJoint.rotation.x = Math.PI/2;
   const armPart2 = new THREE.Mesh(armGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
-  const wristBase = new THREE.Mesh(wristGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
-  const wristJoint = new THREE.Mesh(wristJointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a}));
+  const wristBase = new THREE.Mesh(wristGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a,shininess:50,specular:0xaaaaaa}));
+  const wristJoint = new THREE.Mesh(wristJointGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a,specular:0x505050}));
   wristJoint.rotation.z = Math.PI;
-  const fingerJoint = new THREE.Mesh(fingerJointGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
+  const fingerJoint = new THREE.Mesh(fingerJointGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
   fingerJoint.rotation.z = Math.PI/2;
-  const palmPart_r = new THREE.Mesh(palmGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
-  const finger = new THREE.Mesh(fingerGeometry,new THREE.MeshPhongMaterial({color:0x696969})); 
+  const palmPart_r = new THREE.Mesh(palmGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
+  const finger = new THREE.Mesh(fingerGeometry,new THREE.MeshPhongMaterial({color:0x808080})); 
 
   finger_r = new THREE.Group();
   finger_r.add(fingerJoint);
