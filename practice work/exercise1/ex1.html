@@ -82,7 +82,7 @@ function init()
   const fov = 75;
   const aspect = 2;  // the canvas default
   const near = 0.1;
-  const far = 1000;
+  const far = 400;
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
   camera.up.set(0,0,1);
   camera.lookAt(0,0,0);
@@ -114,7 +114,7 @@ function main(){
 
 
   
-  createMarks();
+  createMarks(scene,2,4,100);
   createLayer1();
   createLayer2();
   createLayer3();
@@ -964,14 +964,14 @@ primatives.push(edge)
 primatives.push(wireframe)
 }
 
-function createMarks(){
+function createMarks(scene, size, distance, number){
   const material = new THREE.MeshLambertMaterial({
 	color: 0xffffff
 });
 
 const points = [];
-points.push( new THREE.Vector3( - 1, 0, 0 ) );
-points.push( new THREE.Vector3( 1, 0, 0 ) );
+points.push( new THREE.Vector3( - size/2, 0, 0 ) );
+points.push( new THREE.Vector3( size/2, 0, 0 ) );
 
 const lineGeometry = new THREE.BufferGeometry().setFromPoints( points );
 
@@ -982,10 +982,10 @@ verticalLine.rotation.z = Math.PI/2;
 const cross = new THREE.Group();
 cross.add(horizontalLine);
 cross.add(verticalLine);
-scene.add( cross );
 
-for (let i=-400;i<=400;i=i+8){
-  for(let j=-400;j<=400;j=j+8){
+const length = (number-1)*(size+distance);
+for (let i=-length/2;i<=length/2;i=i+distance+size){
+  for(let j=-length/2;j<=length/2;j=j+distance+size){
     const mark = cross.clone();
     scene.add(mark);
     mark.position.set(i,j,0);
