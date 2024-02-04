@@ -166,8 +166,17 @@ function render(time) {
   renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
   renderer.render(scene, cameraOrthograpic);
     
-   
-    flyControls.update(deltaTime*0.05);
+  canvas.addEventListener('mousemove', (event) => {
+  if (event.clientX <  window.innerWidth / 2){
+    flyControls.enabled = false;
+    OBControls.enabled = true;
+  }else{
+    flyControls.enabled = true;
+    OBControls.enabled = false;
+  } 
+});
+    flyControls.update(deltaTime*0.02);
+    
     //FPControls.update(deltaTime*0.05);
     //tbControls.update();
 
