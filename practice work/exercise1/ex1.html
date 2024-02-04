@@ -38,10 +38,12 @@
   import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
   import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
-const distance = 32;
 let renderer, camera, controls, scene;
+
 let primatives = [];
+
 let shape = new THREE.Shape();
+const distance = 32;
 const x = -2.5;
 const y = -5;
 shape.moveTo(x + 2.5, y + 2.5);
