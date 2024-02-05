@@ -112,12 +112,13 @@ renderer.setScissorTest(true);
 
 cameraPerpective = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 scene.add(cameraPerpective);
-cameraPerpective.position.set(0,50,150);
+cameraPerpective.lookAt(0, 2*distance, 0);
+cameraPerpective.position.set(0, 4*distance, 200);
 
 cameraOrthograpic = new THREE.OrthographicCamera( -100, 100, -100, 100, 1, 1000);
-cameraOrthograpic.rotation.z = Math.PI;
+cameraOrthograpic.up.set(0,-1,0);
 scene.add(cameraOrthograpic);
-cameraOrthograpic.position.set(0,0,100);
+cameraOrthograpic.position.set(0,0,-100);
 
 cameraPerpective2 = cameraPerpective.clone();
 scene.add(cameraPerpective2);
@@ -163,27 +164,27 @@ function createLayer1(){
   const boxGeometry = new THREE.BoxGeometry(7, 7, 7 );
   const box = new THREE.Mesh(boxGeometry, material);
   scene.add(box);
-  box.position.set(-2*distance, 2*distance , zPos);
+  box.position.set(-2*distance, 0 , zPos);
   //Circle geometry
   const circleGeometry = new THREE.CircleGeometry(7, 24);
   const circle = new THREE.Mesh(circleGeometry, material);
   scene.add(circle);
-  circle.position.set(-distance, 2*distance, zPos);
+  circle.position.set(-distance, 0, zPos);
   //cone geometry
   const coneGeometry = new THREE.ConeGeometry(6,8, 16);
   const cone = new THREE.Mesh(coneGeometry, material);
   scene.add(cone);
-  cone.position.set(0, 2*distance, zPos);
+  cone.position.set(0, 0, zPos);
   //cylinder geometry
   const cylinderGeometry = new THREE.CylinderGeometry(4,4,8, 12);
   const cylinder = new THREE.Mesh(cylinderGeometry, material);
   scene.add(cylinder);
-  cylinder.position.set(distance, 2*distance, zPos);
+  cylinder.position.set(distance, 0, zPos);
   //dodecahedron geometry
   const dodecahedronGeometry = new THREE.DodecahedronGeometry(7);
   const dodecahedron = new THREE.Mesh(dodecahedronGeometry, material);
   scene.add(dodecahedron);
-  dodecahedron.position.set(2*distance, 2*distance, zPos);
+  dodecahedron.position.set(2*distance, 0, zPos);
   //extrude geometry
 const extrudeSettings = {
   steps: 2,  
@@ -233,7 +234,7 @@ kleinMesh.position.set(2*distance, distance, zPos);
   const planeGeometry = new THREE.PlaneGeometry(7,7);
   const plane = new THREE.Mesh(planeGeometry, material);
   scene.add(plane);
-  plane.position.set(-2*distance, 0 , zPos);
+  plane.position.set(-2*distance, 2*distance , zPos);
 
 // polyhedron geometry
   const verticesOfCube = [
@@ -253,30 +254,30 @@ const polyhedronGeometry = new THREE.PolyhedronGeometry(
 	verticesOfCube, indicesOfFaces, 7, 2 );
     const polyhedron = new THREE.Mesh(polyhedronGeometry, material);
   scene.add(polyhedron);
-  polyhedron.position.set(-distance, 0 , zPos);
+  polyhedron.position.set(-distance, 2*distance , zPos);
 //ring geometry
   const ringGeometry = new THREE.RingGeometry(
 	3, 7, 18);
 const ring = new THREE.Mesh(ringGeometry, material);
   scene.add(ring);
-  ring.position.set(0, 0 , zPos);
+  ring.position.set(0, 2*distance, zPos);
 
 //shape geometry
 const heart2dGeometry = new THREE.ShapeGeometry( shape );
 const heart2d = new THREE.Mesh(heart2dGeometry, material);
 scene.add(heart2d);
-heart2d.position.set(distance, 0 , zPos);
+heart2d.position.set(distance, 2*distance , zPos);
 
 //sphere geometry
 const sphereGeometry = new THREE.SphereGeometry( 7,16,16 );
 const sphere = new THREE.Mesh(sphereGeometry, material);
 scene.add(sphere);
-sphere.position.set(2*distance, 0 , zPos);
+sphere.position.set(2*distance, 2*distance , zPos);
 //tetrahedron geometry
 const tetrahedronGeometry = new THREE.TetrahedronGeometry( 7 );
 const tetrahedron = new THREE.Mesh(tetrahedronGeometry, material);
 scene.add(tetrahedron);
-tetrahedron.position.set(-2*distance, -distance , zPos);
+tetrahedron.position.set(-2*distance, 3*distance , zPos);
 //text geometry
 const loader = new FontLoader();
 loader.load('fonts/helvetiker_regular.typeface.json', (font) => {
@@ -293,20 +294,20 @@ loader.load('fonts/helvetiker_regular.typeface.json', (font) => {
   });
   const textMesh = new THREE.Mesh(textGeometry, material);
   scene.add(textMesh);
-  textMesh.position.set(-distance, -distance , zPos);
-  //primatives.push(textMesh);
+  textMesh.position.set(-distance, 3*distance , zPos);
+  primatives.push(textMesh);
 });
 
 //torus geomrtry
 const torusGeometry = new THREE.TorusGeometry( 5,2,8,24 );
 const torus = new THREE.Mesh(torusGeometry, material);
 scene.add(torus);
-torus.position.set(0, -distance , zPos);
+torus.position.set(0, 3*distance , zPos);
 //torus knot geometry
 const torusKnotGeometry = new THREE.TorusKnotGeometry( 3.5,1.5,16,32,2,3 );
 const torusKnot = new THREE.Mesh(torusKnotGeometry, material);
 scene.add(torusKnot);
-torusKnot.position.set(distance, -distance , zPos);
+torusKnot.position.set(distance, 3*distance , zPos);
 
 //tube geometry
 class CustomSinCurve extends THREE.Curve {
@@ -326,20 +327,20 @@ const path = new CustomSinCurve( 4 );
 const tubeGeometry = new THREE.TubeGeometry( path, 20, 2, 8, false );
 const tube = new THREE.Mesh( tubeGeometry, material );
 scene.add(tube);
-tube.position.set(2*distance, -distance , zPos);
+tube.position.set(2*distance, 3*distance , zPos);
 //edge geometry
 const edgeGeometry = new THREE.EdgesGeometry( new THREE.BoxGeometry(
     8,8,8));
 const edge = new THREE.LineSegments( edgeGeometry,new THREE.LineBasicMaterial( { color: 0xffffff } ) );
 scene.add(edge);
-edge.position.set(-6/5*distance, -2*distance , zPos);
+edge.position.set(-6/5*distance, 4*distance , zPos);
 //wire frame geometry
 const wireframeGeometry = new THREE.WireframeGeometry(
     new THREE.BoxGeometry(
       8,8,8));
 const wireframe = new THREE.LineSegments( wireframeGeometry, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
 scene.add(wireframe);
-wireframe.position.set(6/5*distance,-2*distance,zPos);
+wireframe.position.set(6/5*distance,4*distance,zPos);
 
 // register in rotation list
 primatives.push(box);
