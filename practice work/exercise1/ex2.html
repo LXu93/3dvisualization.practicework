@@ -112,42 +112,30 @@ renderer.setScissorTest(true);
 
 cameraPerpective = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 scene.add(cameraPerpective);
-cameraPerpective.lookAt(0, 2*distance, 0);
-cameraPerpective.position.set(0, 4*distance, 200);
+cameraPerpective.lookAt(0, 0, 0);
+cameraPerpective.position.set(0, 4*distance, 100);
 
 cameraOrthograpic = new THREE.OrthographicCamera( -100, 100, -100, 100, 1, 1000);
 cameraOrthograpic.up.set(0,-1,0);
 scene.add(cameraOrthograpic);
-cameraOrthograpic.position.set(0,0,-100);
+cameraOrthograpic.position.set(0,4*distance,-400);
 
-cameraPerpective2 = cameraPerpective.clone();
-scene.add(cameraPerpective2);
-
-cameraOrthograpic2 = cameraOrthograpic.clone();
-scene.add(cameraOrthograpic2);
-
-
-OBControls = new OrbitControls( cameraPerpective, renderer.domElement );
-FPControls = new FirstPersonControls(cameraOrthograpic, renderer.domElement);
+OBControls = new OrbitControls( cameraOrthograpic, renderer.domElement );
+/*FPControls = new FirstPersonControls(cameraPerpective, renderer.domElement);
 FPControls.heightMax = 0.6;
 FPControls.heightMin = 0.4;
 FPControls.movementSpeed = 0.5;
-FPControls.rollSpeed = 0.001;
+FPControls.rollSpeed = 0.001;*/
 
 
 
-flyControls = new FlyControls(cameraPerpective2,renderer.domElement);
+flyControls = new FlyControls(cameraPerpective,renderer.domElement);
 flyControls.movementSpeed = 0.5;
 flyControls.rollSpeed = 0.001;
 
-tbControls = new TrackballControls(cameraOrthograpic2, renderer.domElement);
-
+//tbControls = new TrackballControls(cameraPerpective, renderer.domElement);
 OBControls.enabled = false;
-FPControls.enabled = false;
 flyControls.enabled = false;
-tbControls.enabled = false;
-
- 
 }
 
 function main(){
@@ -416,8 +404,6 @@ function render(time) {
       const canvas = renderer.domElement;
       cameraPerpective.aspect = canvas.clientWidth / canvas.clientHeight;
       cameraPerpective.updateProjectionMatrix();
-      cameraPerpective2.aspect = canvas.clientWidth / canvas.clientHeight;
-      cameraPerpective2.updateProjectionMatrix();
     }
 
     primatives.forEach(primative => {
@@ -425,51 +411,27 @@ function render(time) {
         
     });
     
-  renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight/2 );
-  renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight/2 );
-  renderer.render(scene, cameraPerpective2);
- 
-
-  renderer.setScissor(0,window.innerHeight/2, window.innerWidth / 2, window.innerHeight/2 );
-  renderer.setViewport(0, window.innerHeight/2, window.innerWidth / 2, window.innerHeight/2 );
+  renderer.setScissor(0, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2 );
+  renderer.setViewport(0, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2 );
   renderer.render(scene, cameraPerpective);
 
-
-  renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight/2);
-  renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight/2);
-  renderer.render(scene, cameraOrthograpic2);
-
-  renderer.setScissor(window.innerWidth / 2, window.innerHeight/2, window.innerWidth / 2, window.innerHeight/2);
-  renderer.setViewport(window.innerWidth / 2, window.innerHeight/2,  window.innerWidth / 2, window.innerHeight/2);
+  renderer.setScissor(window.innerWidth / 2, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2);
+  renderer.setViewport(window.innerWidth / 2, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2);
   renderer.render(scene, cameraOrthograpic);
+
     
   canvas.addEventListener('mousemove', (event) => {
-  if (event.clientX <  window.innerWidth / 2 && event.clientY < window.innerHeight / 2){
-    OBControls.enabled = true;
-    //FPControls.enabled = false;
-    flyControls.enabled = false;
-    tbControls.enabled = false;
-    
-  }else if(event.clientX <  window.innerWidth / 2 && event.clientY > window.innerHeight / 2){
-    OBControls.enabled = false;
-    FPControls.enabled = true;
-    flyControls.enabled = false;
-    tbControls.enabled = false;
-  }else if(event.clientX >  window.innerWidth / 2 && event.clientY < window.innerHeight / 2){
-    OBControls.enabled = false;
-    FPControls.enabled = false;
-    flyControls.enabled = true;
-    tbControls.enabled = false;
+  if (event.clientX <  window.innerWidth / 2 ){
+    OBControls.enabled = false; 
+    flyControls.enabled = true; 
   }else{
-    OBControls.enabled = false;
-    //FPControls.enabled = false;
+    OBControls.enabled = true;
     flyControls.enabled = false;
-    tbControls.enabled = true;
   }
 });
-    flyControls.update(deltaTime*10);
-    FPControls.update(deltaTime*10);
-    tbControls.update();
+    flyControls.update(deltaTime*100);
+    //FPControls.update(deltaTime*10);
+    //tbControls.update();
 
    
     requestAnimationFrame(render);
