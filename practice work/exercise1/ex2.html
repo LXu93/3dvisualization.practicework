@@ -15,12 +15,22 @@
           height: 100%;
           display: block;
       }
+      #left {
+        float: left;
+        width: 50%;
+        height: 100%;
+      }
+      #right{
+        float: right;
+        width: 50%;
+        height: 100%;
+      }
       </style>
     </head>
     <body>
       <canvas id="c">
-        <p>Perspective Camera</p>
-        <p>Orthographic Camera</p>
+        <div id = "left"></div>
+        <div id = "right"></div>
       </canvas>
     </body>
 
@@ -110,17 +120,19 @@ renderer = new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setScissorTest(true);
 
-cameraPerpective = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+cameraPerpective = new THREE.PerspectiveCamera( 75, 0.5*window.innerWidth / window.innerHeight, 0.1, 1000 );
 scene.add(cameraPerpective);
 cameraPerpective.lookAt(0, 0, 0);
-cameraPerpective.position.set(0, 4*distance, 100);
+cameraPerpective.position.set(3*distance, 3*distance, 200);
 
-cameraOrthograpic = new THREE.OrthographicCamera( -100, 100, -100, 100, 1, 1000);
+cameraOrthograpic = new THREE.OrthographicCamera( -0.1*window.innerWidth,0.1*window.innerWidth, -0.2*window.innerHeight, 0.2*window.innerHeight, 1, 1000);
 cameraOrthograpic.up.set(0,-1,0);
 scene.add(cameraOrthograpic);
-cameraOrthograpic.position.set(0,4*distance,-400);
+cameraOrthograpic.position.set(3*distance,3*distance,-200);
 
-OBControls = new OrbitControls( cameraOrthograpic, renderer.domElement );
+const left = document.getElementById("left");
+const right = document.getElementById("right");
+OBControls = new OrbitControls( cameraPerpective, canvas );
 /*FPControls = new FirstPersonControls(cameraPerpective, renderer.domElement);
 FPControls.heightMax = 0.6;
 FPControls.heightMin = 0.4;
@@ -129,13 +141,13 @@ FPControls.rollSpeed = 0.001;*/
 
 
 
-flyControls = new FlyControls(cameraPerpective,renderer.domElement);
+/*flyControls = new FlyControls(cameraPerpective,canvas);
 flyControls.movementSpeed = 0.5;
-flyControls.rollSpeed = 0.001;
+flyControls.rollSpeed = 0.001;*/
 
-//tbControls = new TrackballControls(cameraPerpective, renderer.domElement);
-OBControls.enabled = false;
-flyControls.enabled = false;
+tbControls = new TrackballControls(cameraOrthograpic, renderer.domElement);
+//OBControls.enabled = false;
+//flyControls.enabled = false;
 }
 
 function main(){
@@ -239,7 +251,7 @@ const indicesOfFaces = [
 ]; 
 
 const polyhedronGeometry = new THREE.PolyhedronGeometry(
-	verticesOfCube, indicesOfFaces, 7, 2 );
+	verticesOfCube, indicesOfFaces, 7, 0 );
     const polyhedron = new THREE.Mesh(polyhedronGeometry, material);
   scene.add(polyhedron);
   polyhedron.position.set(-distance, 2*distance , zPos);
@@ -292,7 +304,7 @@ const torus = new THREE.Mesh(torusGeometry, material);
 scene.add(torus);
 torus.position.set(0, 3*distance , zPos);
 //torus knot geometry
-const torusKnotGeometry = new THREE.TorusKnotGeometry( 3.5,1.5,16,32,2,3 );
+const torusKnotGeometry = new THREE.TorusKnotGeometry( 3.5,1.5,64,64,2,3 );
 const torusKnot = new THREE.Mesh(torusKnotGeometry, material);
 scene.add(torusKnot);
 torusKnot.position.set(distance, 3*distance , zPos);
@@ -312,7 +324,7 @@ getPoint( t ) {
 }
 
 const path = new CustomSinCurve( 4 );
-const tubeGeometry = new THREE.TubeGeometry( path, 20, 2, 8, false );
+const tubeGeometry = new THREE.TubeGeometry( path, 20, 1, 8, false );
 const tube = new THREE.Mesh( tubeGeometry, material );
 scene.add(tube);
 tube.position.set(2*distance, 3*distance , zPos);
@@ -411,27 +423,27 @@ function render(time) {
         
     });
     
-  renderer.setScissor(0, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2 );
-  renderer.setViewport(0, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2 );
+  renderer.setScissor(0, 0, window.innerWidth / 2, window.innerHeight );
+  renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight );
   renderer.render(scene, cameraPerpective);
 
-  renderer.setScissor(window.innerWidth / 2, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2);
-  renderer.setViewport(window.innerWidth / 2, window.innerHeight/4, window.innerWidth / 2, window.innerHeight/2);
+  renderer.setScissor(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
+  renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight);
   renderer.render(scene, cameraOrthograpic);
 
     
   canvas.addEventListener('mousemove', (event) => {
   if (event.clientX <  window.innerWidth / 2 ){
-    OBControls.enabled = false; 
-    flyControls.enabled = true; 
+    OBControls.enabled = true; 
+    tbControls.enabled = false; 
   }else{
-    OBControls.enabled = true;
-    flyControls.enabled = false;
+    OBControls.enabled = false;
+    tbControls.enabled = true;
   }
 });
-    flyControls.update(deltaTime*100);
+    //flyControls.update(deltaTime*100);
     //FPControls.update(deltaTime*10);
-    //tbControls.update();
+    tbControls.update();
 
    
     requestAnimationFrame(render);
