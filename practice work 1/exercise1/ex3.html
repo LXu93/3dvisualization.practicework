@@ -227,7 +227,7 @@ function main()
   const texture = loader.load('grenouille.jpg');
 
   const cubes = [
-    makeInstance(scene, texture, geometry, 0xFFFFFF,  0),
+    makeInstance(scene, texture, geometry, 0x00FF00,  0),
     makeInstance(scene, texture, geometry, 0xFF0000, -3),
     makeInstance(scene, texture, geometry, 0x0000FF,  3),
   ];
@@ -245,7 +245,6 @@ function main()
   }
 
   function render(time) {
-//   time *= 0.0004;
 
     if (resizeRendererToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
