@@ -63,6 +63,7 @@ const initialArmAngle = Math.PI/3;
 const initialForearmAngele = -Math.PI/5*2;
 const initialHandAngle = -Math.PI/2;
 const initialThighAngle = -Math.PI*(7/24);
+const initialCalfAngle = -initialThighAngle*2;
 const legHeight = thighlenght*Math.abs(2*Math.cos(initialThighAngle));
 
 let walkingAnimaGroup1 = [];
@@ -347,16 +348,17 @@ function animate(time){
 
   // First action: walking
   if(time*speed<2*walkingSteps*Math.PI){
+    // right front leg and left hind leg movement
     walkingAnimaGroup1.forEach(element => {
-      element.calf.rotation.z = -initialThighAngle*2+maxCalfFreedom*Math.sin(time*speed);
+      element.calf.rotation.z = initialCalfAngle+maxCalfFreedom*Math.sin(time*speed);
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*Math.sin(time*speed);
     });
+    // left front leg and right hind leg movement
     walkingAnimaGroup2.forEach(element => {
-      element.calf.rotation.z = -initialThighAngle*2+maxCalfFreedom*(Math.sin(time*speed-Math.PI));
+      element.calf.rotation.z = initialCalfAngle+maxCalfFreedom*(Math.sin(time*speed-Math.PI));
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
-    robot.position.y=0.4*(Math.sin(2*time*speed-Math
-    .PI/4)+1)
+    robot.position.y=0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
     robot.position.x += deltaTime*speed;
   }
 
