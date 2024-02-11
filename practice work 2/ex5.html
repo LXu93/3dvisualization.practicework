@@ -1,0 +1,247 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PW2-Ex1, Ex2</title>
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+    #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+  </body>
+
+  <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/"
+      }
+    }
+  </script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+	import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+  import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
+
+let canvas, renderer, scene, camera, controls, gui;
+const BoxHeight = 50;
+const BoxWidth = 50;
+const BoxDepth = 50;
+const WallThickness = 1;
+
+init();  
+main();
+
+function init(){
+    canvas = document.querySelector('#c');
+    renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+
+    scene = new THREE.Scene();
+
+    RectAreaLightUniformsLib.init();
+  
+    {
+    const color = 0xFFFFFF;
+    const intensity = 1000;
+    const light = new THREE.PointLight(color, intensity);
+    light.position.set(0,BoxHeight/2-0.1,0);
+    scene.add(light);
+    const ambient = new THREE.AmbientLight(color,0.1);
+    scene.add(ambient);
+  }
+
+
+    const fov = 75;
+    const aspect = 2;  // the canvas default
+    const near = 0.1;
+    const far = 400;
+    camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 0, BoxDepth/2+40);
+
+    controls = new OrbitControls( camera, renderer.domElement );
+
+    gui = new GUI();
+}
+
+function main() 
+{
+  const CornelBox = new THREE.Group();
+  scene.add(CornelBox);
+  // create wall geometry and meterial
+  const wallGeometry = new THREE.BoxGeometry(1,1,1,100,100,100);
+  const backwallMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+  const floorMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+  const ceilingMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+  const rightwallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
+  const leftwallMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
+
+  // create wall meshes
+  const floor = new THREE.Mesh(wallGeometry, floorMaterial);
+  floor.scale.set(BoxWidth+2*WallThickness, WallThickness, BoxDepth);
+  const ceiling = new THREE.Mesh(wallGeometry, ceilingMaterial);
+  ceiling.scale.set(BoxWidth+2*WallThickness, WallThickness, BoxDepth);
+  ceiling.position.set(0,BoxHeight+WallThickness,0);
+  const rightwall = new THREE.Mesh(wallGeometry, rightwallMaterial);
+  rightwall.scale.set(BoxDepth,BoxHeight,WallThickness)
+  rightwall.rotation.y = Math.PI/2;
+  rightwall.position.set(BoxWidth/2+WallThickness/2, BoxHeight/2+WallThickness/2, 0)
+  const leftwall = new THREE.Mesh(wallGeometry, leftwallMaterial);
+  leftwall.scale.set(BoxDepth,BoxHeight,WallThickness)
+  leftwall.rotation.y = -Math.PI/2;
+  leftwall.position.set(-BoxWidth/2-WallThickness/2, BoxHeight/2+WallThickness/2, 0)
+  const backwall = new THREE.Mesh(wallGeometry, backwallMaterial);
+  backwall.scale.set(BoxWidth+2*WallThickness, BoxHeight+2*WallThickness, WallThickness);
+  backwall.position.set(0, BoxHeight/2+WallThickness/2, -BoxDepth/2-WallThickness/2);
+
+  // surface lighting
+  const intensity = 1;
+  const ceilingLight = new THREE.RectAreaLight( ceilingMaterial.color, intensity,  BoxWidth, BoxDepth );
+  ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.005, 0 );
+  ceilingLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
+  const rectLightHelper = new RectAreaLightHelper( ceilingLight );
+  ceilingLight.add( rectLightHelper );
+
+  const backLight = new THREE.RectAreaLight( backwallMaterial.color, intensity,  BoxWidth, BoxDepth );
+  backLight.position.set( 0, BoxHeight/2 + WallThickness/2, -BoxDepth/2+0.01 );
+  backLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
+  const rectLightHelper2 = new RectAreaLightHelper( backLight );
+  backLight.add( rectLightHelper2 );
+
+  const floorLight = new THREE.RectAreaLight( floorMaterial.color, intensity,  BoxWidth, BoxDepth );
+  floorLight.position.set( 0, WallThickness/2+0.01, 0 );
+  floorLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
+  const rectLightHelper3 = new RectAreaLightHelper( floorLight );
+  floorLight.add( rectLightHelper3 );
+
+  const leftLight = new THREE.RectAreaLight( leftwallMaterial.color, intensity,  BoxWidth, BoxDepth );
+  leftLight.position.set( -BoxWidth/2+0.01, BoxHeight/2 + WallThickness/2, 0 );
+  leftLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
+  const rectLightHelper4 = new RectAreaLightHelper( leftLight );
+  leftLight.add( rectLightHelper4 );
+
+  const rightLight = new THREE.RectAreaLight( rightwallMaterial.color, intensity,  BoxWidth, BoxDepth );
+  rightLight.position.set( BoxWidth/2-0.01, BoxHeight/2 + WallThickness/2, 0 );
+  rightLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
+  const rectLightHelper5 = new RectAreaLightHelper( rightLight );
+  rightLight.add( rectLightHelper5 );
+
+  CornelBox.add( ceilingLight );
+  CornelBox.add( backLight );
+  CornelBox.add( floorLight );
+  CornelBox.add( leftLight );
+  CornelBox.add( rightLight );
+  CornelBox.add(leftwall);
+  CornelBox.add(rightwall);
+  CornelBox.add(ceiling);
+  CornelBox.add(backwall);
+  CornelBox.add(floor);
+
+  // cone
+  const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, BoxHeight/3);
+  const coneMaterial = new THREE.MeshLambertMaterial();
+  const cone = new THREE.Mesh(coneGeometry,coneMaterial);
+  CornelBox.add(cone);
+  // cylinder
+  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, BoxHeight/3);
+  const cylinderMaterial = new THREE.MeshPhongMaterial();
+  const cylinder = new THREE.Mesh(cylinderGeometry, coneMaterial);
+  CornelBox.add(cylinder);
+  //sphere
+  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/9,100,100);
+  const sphereMaterial = new THREE.MeshPhysicalMaterial();
+  const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
+  CornelBox.add(sphere);
+
+  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/12);
+  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,BoxDepth/6);
+  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/10);
+ 
+  {
+    const legGeometry = new THREE.CylinderGeometry(1,1,1);
+    const tableMaterial = new THREE.MeshLambertMaterial();
+    const table = new THREE.Group();
+    const tablePlane = new THREE.Mesh(wallGeometry, tableMaterial);
+    tablePlane.scale.set(BoxDepth*2/3,WallThickness,BoxDepth*2/3);
+    const tableLeg1 = new THREE.Mesh(legGeometry, tableMaterial);
+    tableLeg1.scale.set(BoxDepth/50,BoxHeight/4,BoxDepth/40);
+    const tableLeg2 = tableLeg1.clone();
+    const tableLeg3 = tableLeg1.clone();
+    const tableLeg4 = tableLeg1.clone();
+    table.add(tablePlane);
+    table.add(tableLeg1);
+    table.add(tableLeg2);
+    table.add(tableLeg3);
+    table.add(tableLeg4);
+    tablePlane.position.set(0,BoxHeight/4+WallThickness/2,0);
+    tableLeg1.position.set(BoxDepth/4,BoxHeight/8,BoxDepth/4);
+    tableLeg2.position.set(-BoxDepth/4,BoxHeight/8,BoxDepth/4);
+    tableLeg3.position.set(-BoxDepth/4,BoxHeight/8,-BoxDepth/4);
+    tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
+
+    CornelBox.add(table);
+  }
+
+  CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
+
+  // GUI set walls colors
+  const colorSetting = gui.addFolder('Color');
+  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color').onChange((value)=>{
+    backLight.color = value;
+  });;
+  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color').onChange((value)=>{
+    ceilingLight.color = value;
+  });
+  colorSetting.addColor(floorMaterial, 'color').name('Floor Color').onChange((value)=>{
+    floorLight.color = value;
+  });;
+  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color').onChange((value)=>{
+    rightLight.color = value;
+  });;
+  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color').onChange((value)=>{
+    leftLight.color = value;
+  });;
+  
+  requestAnimationFrame(render);
+}
+
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
+
+function render() {
+
+    if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+}
+
+
+</script>
+</html>
