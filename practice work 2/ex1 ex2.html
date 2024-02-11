@@ -121,22 +121,25 @@ function main()
   CornelBox.add(backwall);
   CornelBox.add(floor);
 
-  const coneGeometry = new THREE.ConeGeometry(BoxDepth/10, BoxHeight/4);
+  // cone
+  const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, BoxHeight/3);
   const coneMaterial = new THREE.MeshLambertMaterial();
   const cone = new THREE.Mesh(coneGeometry,coneMaterial);
   CornelBox.add(cone);
-  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/10, BoxDepth/10, BoxHeight/4);
+  // cylinder
+  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, BoxHeight/3);
   const cylinderMaterial = new THREE.MeshPhongMaterial();
   const cylinder = new THREE.Mesh(cylinderGeometry, coneMaterial);
-  CornelBox.add(cylinder)
-  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/10,100,100);
+  CornelBox.add(cylinder);
+  //sphere
+  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/9,100,100);
   const sphereMaterial = new THREE.MeshPhysicalMaterial();
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
 
-  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/8,-BoxDepth/12);
-  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/10,BoxDepth/6);
-  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/8,-BoxDepth/10);
+  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/12);
+  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,BoxDepth/6);
+  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/10);
  
   {
     const legGeometry = new THREE.CylinderGeometry(1,1,1);
@@ -165,28 +168,13 @@ function main()
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
 
-  var colorGui = {
-    backwallColor : '0xffffff',
-    ceilingColor: '0xffffff',
-    floorColor: '0xffffff',
-    rightwallColor:'0x00ff00',
-    leftwallColor: '0xff0000'
-  } 
-  gui.addColor(colorGui, 'backwallColor').name('Back Wall Color').onChange((value) =>{
-    backwallMaterial.color.set(value);
-  });
-  gui.addColor(colorGui, 'ceilingColor').name('Ceiling Color').onChange((value) =>{
-    ceilingMaterial.color.set(value);
-  });
-  gui.addColor(colorGui, 'floorColor').name('Floor Color').onChange((value) =>{
-    floorMaterial.color.set(value);
-  });
-  gui.addColor(colorGui, 'rightwallColor').name('Right Wall Color').onChange((value) =>{
-    rightwallMaterial.color.set(value);
-  });
-  gui.addColor(colorGui, 'leftwallColor').name('Left Wall Color').onChange((value) =>{
-    leftwallMaterial.color.set(value);
-  });
+  // GUI set walls colors
+  const colorSetting = gui.addFolder('Color');
+  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color');
+  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color');
+  colorSetting.addColor(floorMaterial, 'color').name('Floor Color');
+  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color');
+  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color');
   
   requestAnimationFrame(render);
 }

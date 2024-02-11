@@ -35,7 +35,8 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-  import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
+  import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+  import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 let canvas, renderer, scene, camera, controls, gui;
 const BoxHeight = 50;
@@ -56,7 +57,7 @@ function init(){
   
     {
     const color = 0xFFFFFF;
-    const intensity = 1000;
+    const intensity = 2000;
     const light = new THREE.PointLight(color, intensity);
     light.position.set(0,BoxHeight/2-0.1,0);
     scene.add(light);
@@ -123,24 +124,24 @@ function main()
   CornelBox.add(floor);
 
   //cone
-  const coneGeometry = new THREE.ConeGeometry(BoxDepth/10, BoxHeight/4);
+  const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, BoxHeight/3,32,8);
   const coneMaterial = new THREE.MeshLambertMaterial();
   const cone = new THREE.Mesh(coneGeometry,coneMaterial);
   CornelBox.add(cone);
   //cylinder
-  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/10, BoxDepth/10, BoxHeight/4);
+  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, BoxHeight/3);
   const cylinderMaterial = new THREE.MeshPhongMaterial();
   const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   CornelBox.add(cylinder)
   //sphere
-  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/10,100,100);
+  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/9,32,16);
   const sphereMaterial = new THREE.MeshPhysicalMaterial();
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
 
-  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/8,-BoxDepth/12);
-  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/10,BoxDepth/6);
-  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/8,-BoxDepth/10);
+  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/12);
+  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,BoxDepth/6);
+  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/10);
  
   {
     const legGeometry = new THREE.CylinderGeometry(1,1,1);
@@ -169,22 +170,32 @@ function main()
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
 
-  // GUI set walls colors
-  const colorSetting = gui.addFolder('Color');
-  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color');
-  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color');
-  colorSetting.addColor(floorMaterial, 'color').name('Floor Color');
-  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color');
-  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color');
-
+  // load textures
+  const textureLoader = new THREE.TextureLoader();
+  const envmapReflec = textureLoader.load( 'textures/equirectangular.png' );
+  envmapReflec.mapping = THREE.EquirectangularReflectionMapping;
+  const envmapRefra = textureLoader.load( 'textures/equirectangular.png' );
+  envmapRefra.mapping = THREE.EquirectangularRefractionMapping;
+  const texture = textureLoader.load('textures/brick_diffuse.jpg');
+  const alphaMap = textureLoader.load('textures/alphaMap.jpg');
+  const bumpMap = textureLoader.load( 'textures/brick_bump.jpg' );
+  const normalMap = textureLoader.load('textures/waternormals.jpg');
+  const roughnessMap = textureLoader.load('textures/brick_roughness.jpg');
+  
   // Set shared properties
+  let modifyMaterials = [coneMaterial, cylinderMaterial, sphereMaterial]
   let materialParams = {
-    alphaHash : true,
+    alphaHash : false,
     alphaTest : 0.0,
     transparent: false,
     opacity: 1.0,
+    depthTest: true,
+    depthWrite: true,
     side: 'THREE.FrontSide',
     visible: true,
+    wireframe: false,
+    vertexColors: false,
+    combine: 'THREE.MultiplyOperation'
   }
 
   const sideOptions = {
@@ -193,27 +204,50 @@ function main()
     'THREE.BackSide': THREE.BackSide,
     }
   
-// load textures
-  const textureLoader = new THREE.TextureLoader();
-  const envmap = textureLoader.load('textures/envmap.png');
-  envmap.mapping = THREE.EquirectangularReflectionMapping;
+  const combineOptions = {
+    'THREE.MultiplyOperation': THREE.MultiplyOperation,
+    'THREE.MixOperation': THREE.MixOperation,
+    'THREE.AddOperation': THREE.AddOperation,
+  }
   
-  let envMapsOptions = {
+  const envMapsOptions = {
       'none': null,
-      'environment map': envmap
+      'reflection': envmapReflec,
+      'refraction': envmapRefra
     }
 
- 
-  const texture = textureLoader.load('textures/alphaMap.jpg');
-  let mapsOptions = {
+  const mapsOptions = {
       'none': null,
-      'texture Mmp': texture
+      'texture map': texture
     }
+
+  const alphaMapsOption = {
+    'none': null,
+    'alpha map': alphaMap
+  }
+
+  const bumpMapsOption = {
+    'none': null,
+    'bump map': bumpMap
+  }
  
+  const normalMapsOption = {
+    'none': null,
+    'normal map': normalMap
+  }
+
+  const roughnessMapsOption = {
+    'none': null,
+    'roughness map': roughnessMap
+  }
+
   let textureOption = {
-    envMaps: 'none',
-    Maps: 'none',
-
+    envMap: 'none',
+    map: 'none',
+    bumpMap: 'none',
+    alphaMap: 'none',
+    normalMap: 'none',
+    roughnessMap: 'none'
   }
 
   function materialChange(material){
@@ -222,58 +256,158 @@ function main()
 
   // GUI shared properties
   const materialSetting = gui.addFolder('Material');
+  materialSetting.add(materialParams, 'alphaHash').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.alphaHash = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'alphaTest',0,1,0.1).onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.alphaTest = value;
+      materialChange(material);
+    })
+  })
   materialSetting.add(materialParams, 'transparent').onChange((value)=>{
-    coneMaterial.transparent = value;
-    sphereMaterial.transparent = value;
-    cylinder.transparent = value;
-    materialChange(coneMaterial);
-    materialChange(sphereMaterial);
-    materialChange(cylinderMaterial);
+    modifyMaterials.forEach((material)=>{
+      material.transparent = value;
+      materialChange(material);
+    })
   })
   materialSetting.add(materialParams, 'opacity',0,1,0.1).onChange((value)=>{
-    coneMaterial.opacity=value;
-    sphereMaterial.opacity = value;
-    cylinder.opacity = value;
+    modifyMaterials.forEach((material)=>{
+      material.opacity = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'depthTest').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.depthTest = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'depthWrite').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.depthWrite = value;
+      materialChange(material);
+    })
   })
   materialSetting.add(materialParams, 'visible').onChange((value)=>{
-    coneMaterial.visible = value;
-    sphereMaterial.visible = value;
-    cylinder.visible = value;
-    materialChange(coneMaterial);
-    materialChange(sphereMaterial);
-    materialChange(cylinderMaterial);
+    modifyMaterials.forEach((material)=>{
+      material.visible = value;
+      materialChange(material);
+    })
   })
   materialSetting.add(materialParams,'side',Object.keys(sideOptions)).onChange((value)=>{
-    coneMaterial.side = sideOptions[value];
-    sphereMaterial.side = sideOptions[value];
-    cylinder.side = sideOptions[value];
-    materialChange(coneMaterial);
-    materialChange(sphereMaterial);
-    materialChange(cylinderMaterial);
+    modifyMaterials.forEach((material)=>{
+      material.side = sideOptions[value];
+      materialChange(material);
+    })
+  })
+
+ 
+  materialSetting.add(materialParams,'wireframe').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.wireframe = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams,'vertexColors').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.vertexColors = value;
+      materialChange(material);
+    })
   })
 
    // GUI Cone material
   const coneMaterialSetting = gui.addFolder('Lambert Material (Cone)');
   coneMaterialSetting.addColor(coneMaterial,'color');
   coneMaterialSetting.addColor(coneMaterial,'emissive');
-  coneMaterialSetting.add(textureOption, 'envMaps',Object.keys(envMapsOptions)).onChange((value)=>{
+  coneMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
     coneMaterial.envMap = envMapsOptions[value];
     materialChange(coneMaterial);
   });
   coneMaterialSetting.add(coneMaterial, 'reflectivity',0,1,0.1);
   coneMaterialSetting.add(coneMaterial, 'refractionRatio',0,1,0.1);
-  coneMaterialSetting.add(textureOption, 'Maps',Object.keys(mapsOptions)).onChange((value)=>{
+  coneMaterialSetting.add(textureOption, 'map',Object.keys(mapsOptions)).onChange((value)=>{
     coneMaterial.map = mapsOptions[value];
     materialChange(coneMaterial);
   });
-  coneMaterialSetting.add(coneMaterial, 'wireframe');
-  coneMaterialSetting.add(coneMaterial, 'vertexColors');
+  coneMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
+    coneMaterial.alphaMap = alphaMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
+    coneMaterial.bumpMap = bumpMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
+    coneMaterial.normalMap = normalMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
+      coneMaterial.combine = combineOptions[value];
+      materialChange(coneMaterial);
+  })
 
+
+  // GUI sphere material
   const sphereMaterialSetting = gui.addFolder('Pyhsic Basic Material (Sphere)')
-  sphereMaterialSetting.add(textureOption, 'envMaps',Object.keys(envMapsOptions)).onChange((value)=>{
+  sphereMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
     sphereMaterial.envMap = envMapsOptions[value];
     materialChange(sphereMaterial);
   });
+  sphereMaterialSetting.addColor(sphereMaterial, 'color');
+  sphereMaterialSetting.addColor(sphereMaterial, 'emissive');
+  sphereMaterialSetting.add(sphereMaterial, 'roughness',0,1.0,0.01);
+  sphereMaterialSetting.add(textureOption, 'roughnessMap',Object.keys(roughnessMapsOption)).onChange((value)=>{
+    sphereMaterial.roughnessMap = roughnessMapsOption[value];
+    materialChange(sphereMaterial);
+  });
+  sphereMaterialSetting.add(sphereMaterial, 'metalness',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'ior',1.0,2.333,0.001);
+  sphereMaterialSetting.add(sphereMaterial, 'reflectivity',0.0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'iridescence',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'iridescenceIOR',1.0,2.333,0.001);
+  sphereMaterialSetting.addColor(sphereMaterial, 'sheenColor');
+  sphereMaterialSetting.add(sphereMaterial, 'sheen',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'sheenRoughness',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'specularIntensity',0,1.0,0.01);
+  sphereMaterialSetting.addColor(sphereMaterial, 'specularColor');
+  sphereMaterialSetting.add(sphereMaterial, 'transmission',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'thickness',0,1.0,0.01);
+
+  // GUI cylinder material
+  const cylinderMaterialSetting = gui.addFolder('Phong Material (Cylinder)')
+  cylinderMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
+    cylinderMaterial.envMap = envMapsOptions[value];
+    materialChange(sphereMaterial);
+  });
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'color');
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'emissive');
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
+  cylinderMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
+      cylinderMaterial.combine = combineOptions[value];
+      materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(cylinderMaterial, 'flatShading');
+  cylinderMaterialSetting.add(cylinderMaterial, 'reflectivity',0,1,0.01);
+  cylinderMaterialSetting.add(cylinderMaterial, 'refractionRatio',0,1,0.01);
+  cylinderMaterialSetting.add(cylinderMaterial, 'shininess',0,100,1);
+  cylinderMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
+    cylinderMaterial.alphaMap = alphaMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
+    cylinderMaterial.bumpMap = bumpMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
+    cylinderMaterial.normalMap = normalMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+
+
   requestAnimationFrame(render);
 }
 
