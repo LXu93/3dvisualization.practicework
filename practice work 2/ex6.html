@@ -66,16 +66,32 @@ function init(){
     pointLight = new THREE.PointLight(color, intensity);
     pointLight.position.set(0,BoxHeight/2-0.1,0);
     pointLight.castShadow = true;
+    pointLight.shadow.camera.far = BoxHeight*2;
     scene.add(pointLight);
     spotLight = new THREE.SpotLight(color, intensity);
-    spotLight.position.set(0,BoxHeight/2-0.1,0);
+    spotLight.position.set(0,BoxHeight/2,0);
     scene.add(spotLight);
     spotLight.castShadow = true;
+    spotLight.shadow.camera.far = BoxHeight*2;
     hemisphereLight = new THREE.HemisphereLight( color, 0xffffff, 1 );
     scene.add( hemisphereLight );
+    hemisphereLight.visible = false;
     directionalLight = new THREE.DirectionalLight( color, 0.5 );
+    directionalLight.position.set(0,BoxHeight/2,0);
+    directionalLight.shadow.camera.top = BoxDepth/2;
+    directionalLight.shadow.camera.bottom = -BoxDepth/2;
+    directionalLight.shadow.camera.left = -BoxWidth/2;
+    directionalLight.shadow.camera.right = BoxWidth/2;
+    directionalLight.shadow.camera.far = BoxHeight*2;
     scene.add( directionalLight );
     directionalLight.castShadow = true;
+
+    //scene.add(new THREE.CameraHelper(directionalLight.shadow.camera));
+    directionalLight.shadowCameraVisible = true;
+    //scene.add(new THREE.CameraHelper(pointLight.shadow.camera));
+    pointLight.shadowCameraVisible = true;
+    //scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
+    spotLight.shadowCameraVisible = true;
 
     const fov = 75;
     const aspect = 2;  // the canvas default
@@ -87,7 +103,7 @@ function init(){
 
     controls = new OrbitControls( camera, renderer.domElement );
 
-    gui = new GUI();
+    gui = new GUI({width:300});
 
     window.addEventListener( 'resize', onWindowResize );
 
@@ -189,6 +205,14 @@ function main()
   CornelBox.add(table);
   tablePlane.castShadow = true;
   tablePlane.receiveShadow = true;
+  tableLeg1.castShadow = true;
+  tableLeg1.receiveShadow = true;
+  tableLeg2.castShadow = true;
+  tableLeg2.receiveShadow = true;
+  tableLeg3.castShadow = true;
+  tableLeg3.receiveShadow = true;
+  tableLeg4.castShadow = true;
+  tableLeg4.receiveShadow = true;
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0);
 
@@ -233,9 +257,9 @@ function main()
   directionallightSeting.add(directionalLight,'visible').name('Activate');
   directionallightSeting.addColor(directionalLight,'color');
   directionallightSeting.add( directionalLight, 'intensity',0,50,0.1);
-  directionallightSeting.add(directionalLight.position, 'x',-1,1,0.001).name('position.x');
-  directionallightSeting.add(directionalLight.position, 'y',-1,1,0.001).name('position.y');
-  directionallightSeting.add(directionalLight.position, 'z',-1,1,0.001).name('position.z');
+  directionallightSeting.add(directionalLight.position, 'x',-BoxWidth/2,BoxWidth/2,0.001).name('position.x');
+  directionallightSeting.add(directionalLight.position, 'y',-BoxHeight/2,BoxHeight/2,0.001).name('position.y');
+  directionallightSeting.add(directionalLight.position, 'z',-BoxDepth/2,BoxDepth/2,0.001).name('position.z');
   directionallightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
     directionalLight.target = targetList[value];
   });
@@ -246,17 +270,30 @@ function main()
   directionallightSeting.add(guiParams, 'mapSize',mapSizeList).name('shadow.mapSize.height').onChange((value)=>{
     directionalLight.shadow.mapSize.height = value;
   });
-  directionallightSeting.add(directionalLight.shadow.camera, 'near');
-  directionallightSeting.add(directionalLight.shadow.camera, 'far');
-  directionallightSeting.add(directionalLight.shadow.camera, 'left');
-  directionallightSeting.add(directionalLight.shadow.camera, 'right');
-  directionallightSeting.add(directionalLight.shadow.camera, 'bottom');
-  directionallightSeting.add(directionalLight.shadow.camera, 'top');
+  directionallightSeting.add(directionalLight.shadow.camera, 'near',0,BoxHeight,0.1).name('shadow.camera.near').onChange((value)=>{
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
+  directionallightSeting.add(directionalLight.shadow.camera, 'far',0,BoxHeight*2,0.1).name('shadow.camera.far').onChange((value)=>{
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
+  directionallightSeting.add(directionalLight.shadow.camera, 'left',-BoxWidth/2,0,1).name('shadow.camera.left').onChange(function(){
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
+  directionallightSeting.add(directionalLight.shadow.camera, 'right',0,BoxWidth/2,1).name('shadow.camera.right').onChange(function(){
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
+  directionallightSeting.add(directionalLight.shadow.camera, 'bottom',-BoxDepth/2,0,1).name('shadow.camera.bottom').onChange(function(){
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
+  directionallightSeting.add(directionalLight.shadow.camera, 'top',0,BoxDepth/2,1).name('shadow.camera.top').onChange(function(){
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
   directionallightSeting.add(directionalLight.shadow, 'radius',0,5,0.1).name('shadow.radius');
   directionallightSeting.add(directionalLight.shadow, 'bias',0,0.0003,0.00005).name('shadow.bias');
   //directionallightSeting.add(directionalLight.shadow, 'blurSamples').name('shadow.blurSamples');
 
   //GUI point light
+
   const pointlightSeting = gui.addFolder('Point Light');
   pointlightSeting.add(pointLight,'visible').name('Activate');
   pointlightSeting.addColor(pointLight,'color');
@@ -271,12 +308,16 @@ function main()
   pointlightSeting.add(guiParams, 'mapSize',mapSizeList).name('shadow.mapSize.height').onChange((value)=>{
     pointLight.shadow.mapSize.height = value;
   });
-  pointlightSeting.add(pointLight.shadow.camera, 'near').name('shadow.camera.near');
-  pointlightSeting.add(pointLight.shadow.camera, 'far').name('shaow.camera.far');
+  pointlightSeting.add(pointLight.shadow.camera, 'near',0,BoxHeight,0.1).name('shadow.camera.near').onChange((value)=>{
+    pointLight.shadow.camera.updateProjectionMatrix();
+  });
+  pointlightSeting.add(pointLight.shadow.camera, 'far',0,BoxHeight*2,0.1).name('shadow.camera.far').onChange((value)=>{
+    pointLight.shadow.camera.updateProjectionMatrix();
+  });
   pointlightSeting.add(pointLight.shadow, 'radius',0,5,0.1).name('shadow.radius');
   pointlightSeting.add(pointLight.shadow, 'bias',0,0.0003,0.00005).name('shadow.bias');
   //pointlightSeting.add(pointLight.shadow, 'blurSamples',0,100,1).name('shadow.blurSamples');
-  
+ 
   //GUI spot light
   const spotlightSeting = gui.addFolder('Spot Light');
   spotlightSeting.add(spotLight,'visible').name('Activate');
@@ -300,8 +341,12 @@ function main()
   spotlightSeting.add(guiParams, 'mapSize',mapSizeList).name('shadow.mapSize.height').onChange((value)=>{
     spotLight.shadow.mapSize.height = value;
   });
-  spotlightSeting.add(spotLight.shadow.camera, 'near').name('shadow.camera.near');
-  spotlightSeting.add(spotLight.shadow.camera, 'far').name('shaow.camera.far');
+  spotlightSeting.add(spotLight.shadow.camera, 'near',0,BoxHeight,0.1).name('shadow.camera.near').onChange((value)=>{
+    spotLight.shadow.camera.updateProjectionMatrix();
+  });
+  spotlightSeting.add(spotLight.shadow.camera, 'far',0,BoxHeight*2,0.1).name('shadow.camera.far').onChange((value)=>{
+    spotLight.shadow.camera.updateProjectionMatrix();
+  });
   spotlightSeting.add(spotLight.shadow, 'focus',0,1,0.01).name('shadow.focus');
   spotlightSeting.add(spotLight.shadow, 'radius',0,5,0.1).name('shadow.radius');
   spotlightSeting.add(spotLight.shadow, 'bias',0,0.0003,0.00005).name('shadow.bias');
