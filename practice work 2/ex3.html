@@ -53,6 +53,8 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
 
     scene = new THREE.Scene();
 
@@ -82,6 +84,8 @@ function init(){
     controls = new OrbitControls( camera, renderer.domElement );
 
     gui = new GUI();
+
+    window.addEventListener( 'resize', onWindowResize );
 }
 
 function main() 
@@ -189,7 +193,6 @@ function main()
   directionallightSeting.add(directionalLight,'visible').name('Activate');
   directionallightSeting.addColor(directionalLight,'color');
   directionallightSeting.add( directionalLight, 'intensity',0,50,0.1);
-  directionallightSeting.add(directionalLight,'castShadow');
   directionallightSeting.add(directionalLight.position, 'x',-1,1,0.001).name('position.x');
   directionallightSeting.add(directionalLight.position, 'y',-1,1,0.001).name('position.y');
   directionallightSeting.add(directionalLight.position, 'z',-1,1,0.001).name('position.z');
@@ -203,19 +206,17 @@ function main()
   pointlightSeting.add(pointLight, 'intensity',0,10000,1);
   pointlightSeting.add(pointLight, 'decay',0,5,0.01);
   pointlightSeting.add(pointLight, 'distance',0,BoxHeight+10,1);
-  pointlightSeting.add(pointLight, 'power',0,100000,1);
-  pointlightSeting.add(pointLight,'castShadow');
+  pointlightSeting.add(pointLight, 'power',0,20000,1);
   
   //GUI spot light
   const spotlightSeting = gui.addFolder('Spot Light');
   spotlightSeting.add(spotLight,'visible').name('Activate');
   spotlightSeting.addColor(spotLight,'color');
-  spotlightSeting.add(spotLight, 'intensity',0,10000,1);
-  spotlightSeting.add(spotLight,'castShadow');  
+  spotlightSeting.add(spotLight, 'intensity',0,10000,1);  
   spotlightSeting.add(spotLight,'angle',0,Math.PI/2,0.01);
   spotlightSeting.add(spotLight, 'decay',0,5,0.01);
   spotlightSeting.add(spotLight, 'distance',0,BoxHeight+10,1);
-  spotlightSeting.add(spotLight, 'power',0,100000,1);
+  spotlightSeting.add(spotLight, 'power',0,5000,1);
   spotlightSeting.add(spotLight,'penumbra',0,1,0.01);
   spotlightSeting.add(spotLight.position, 'x',-BoxWidth/2,BoxWidth/2,0.001).name('position.x');
   //spotlightSeting.add(spotLight.position, 'y',-BoxHeight/2,BoxHeight/2,0.001).name('position.y');
@@ -231,7 +232,6 @@ function main()
   hemispherelightSeting.addColor(hemisphereLight,'color');
   hemispherelightSeting.addColor(hemisphereLight,'groundColor');
   hemispherelightSeting.add(hemisphereLight,'intensity',0,15,0.1);
-  hemispherelightSeting.add(hemisphereLight,'castShadow');
   hemispherelightSeting.add(hemisphereLight.position, 'x',-1,1,0.001).name('position.x');
   hemispherelightSeting.add(hemisphereLight.position, 'y',-1,1,0.001).name('position.y');
   hemispherelightSeting.add(hemisphereLight.position, 'z',-1,1,0.001).name('position.z');
@@ -239,24 +239,17 @@ function main()
   requestAnimationFrame(render);
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
+function onWindowResize() {
+
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 function render() {
 
-    if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }

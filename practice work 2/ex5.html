@@ -50,6 +50,8 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
 
     scene = new THREE.Scene();
 
@@ -77,6 +79,8 @@ function init(){
     controls = new OrbitControls( camera, renderer.domElement );
 
     gui = new GUI();
+
+    window.addEventListener( 'resize', onWindowResize );
 }
 
 function main() 
@@ -110,36 +114,42 @@ function main()
   backwall.position.set(0, BoxHeight/2+WallThickness/2, -BoxDepth/2-WallThickness/2);
 
   // surface lighting
+  let rectLights = [];
   const intensity = 0.5;
   const ceilingLight = new THREE.RectAreaLight( ceilingMaterial.color, intensity,  BoxWidth, BoxDepth );
   ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.005, 0 );
   ceilingLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper = new RectAreaLightHelper( ceilingLight );
   ceilingLight.add( rectLightHelper );
+  rectLights.push(ceilingLight);
 
   const backLight = new THREE.RectAreaLight( backwallMaterial.color, intensity,  BoxWidth, BoxDepth );
   backLight.position.set( 0, BoxHeight/2 + WallThickness/2, -BoxDepth/2+0.01 );
   backLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper2 = new RectAreaLightHelper( backLight );
   backLight.add( rectLightHelper2 );
+  rectLights.push(backLight);
 
   const floorLight = new THREE.RectAreaLight( floorMaterial.color, intensity,  BoxWidth, BoxDepth );
   floorLight.position.set( 0, WallThickness/2+0.01, 0 );
   floorLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper3 = new RectAreaLightHelper( floorLight );
   floorLight.add( rectLightHelper3 );
+  rectLights.push(floorLight);
 
   const leftLight = new THREE.RectAreaLight( leftwallMaterial.color, intensity,  BoxWidth, BoxDepth );
   leftLight.position.set( -BoxWidth/2+0.01, BoxHeight/2 + WallThickness/2, 0 );
   leftLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper4 = new RectAreaLightHelper( leftLight );
   leftLight.add( rectLightHelper4 );
+  rectLights.push(leftLight);
 
   const rightLight = new THREE.RectAreaLight( rightwallMaterial.color, intensity,  BoxWidth, BoxDepth );
   rightLight.position.set( BoxWidth/2-0.01, BoxHeight/2 + WallThickness/2, 0 );
   rightLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper5 = new RectAreaLightHelper( rightLight );
   rightLight.add( rectLightHelper5 );
+  rectLights.push(rightLight);
 
   CornelBox.add( ceilingLight );
   CornelBox.add( backLight );
@@ -200,20 +210,30 @@ function main()
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
 
   // GUI set walls colors
-  const colorSetting = gui.addFolder('Color');
-  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color').onChange((value)=>{
+  const guiParams = {
+    intensity: intensity
+  };
+
+  const rectLightSetting = gui.addFolder('Telelumen');
+  
+  rectLightSetting.add(guiParams, 'intensity', 0,3,0.01).onChange((value)=>{
+      rectLights.forEach((rectligt) => {
+        rectligt.intensity = value;
+      })
+  });
+  rectLightSetting.addColor(backwallMaterial, 'color').name('Back Wall Color').onChange((value)=>{
     backLight.color = value;
   });;
-  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color').onChange((value)=>{
+  rectLightSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color').onChange((value)=>{
     ceilingLight.color = value;
   });
-  colorSetting.addColor(floorMaterial, 'color').name('Floor Color').onChange((value)=>{
+  rectLightSetting.addColor(floorMaterial, 'color').name('Floor Color').onChange((value)=>{
     floorLight.color = value;
   });;
-  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color').onChange((value)=>{
+  rectLightSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color').onChange((value)=>{
     rightLight.color = value;
   });;
-  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color').onChange((value)=>{
+  rectLightSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color').onChange((value)=>{
     leftLight.color = value;
   });;
   
@@ -230,14 +250,18 @@ function resizeRendererToDisplaySize(renderer) {
     }
     return needResize;
   }
+  
+function onWindowResize() {
+
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 function render() {
 
-    if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }
