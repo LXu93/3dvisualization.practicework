@@ -110,7 +110,7 @@ function main()
   backwall.position.set(0, BoxHeight/2+WallThickness/2, -BoxDepth/2-WallThickness/2);
 
   // surface lighting
-  const intensity = 1;
+  const intensity = 0.5;
   const ceilingLight = new THREE.RectAreaLight( ceilingMaterial.color, intensity,  BoxWidth, BoxDepth );
   ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.005, 0 );
   ceilingLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
