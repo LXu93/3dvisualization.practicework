@@ -38,10 +38,12 @@
   import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
 
 let canvas, renderer, scene, camera, controls, gui;
-const BoxHeight = 50;
+const BoxHeight = 60;
 const BoxWidth = 50;
 const BoxDepth = 50;
 const WallThickness = 1;
+const CeilingHeight = 10;
+const PillarThickness = 1.6;
 
 init();  
 main();
@@ -60,7 +62,7 @@ function init(){
     const light = new THREE.PointLight(color, intensity);
     light.position.set(0,BoxHeight/2-0.1,0);
     scene.add(light);
-    const ambient = new THREE.AmbientLight(color,0.1);
+    const ambient = new THREE.AmbientLight(color,0.6);
     scene.add(ambient);
   }
 
@@ -71,7 +73,7 @@ function init(){
     const far = 400;
     camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.lookAt(0, 0, 0);
-    camera.position.set(0, 0, BoxDepth/2+40);
+    camera.position.set(0, 0, BoxDepth/2+60);
 
     controls = new OrbitControls( camera, renderer.domElement );
 
@@ -86,35 +88,90 @@ function main()
   const wallGeometry = new THREE.BoxGeometry(1,1,1,100,100,100);
   const backwallMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
   const floorMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
-  const ceilingMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+  const ceilingMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
   const rightwallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
   const leftwallMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
 
   // create wall meshes
   const floor = new THREE.Mesh(wallGeometry, floorMaterial);
-  floor.scale.set(BoxWidth+2*WallThickness, WallThickness, BoxDepth);
+  floor.scale.set(BoxWidth+2*PillarThickness, WallThickness, BoxDepth+2*PillarThickness);
   const ceiling = new THREE.Mesh(wallGeometry, ceilingMaterial);
-  ceiling.scale.set(BoxWidth+2*WallThickness, WallThickness, BoxDepth);
+  ceiling.scale.set(BoxWidth, WallThickness, BoxDepth);
   ceiling.position.set(0,BoxHeight+WallThickness,0);
   const rightwall = new THREE.Mesh(wallGeometry, rightwallMaterial);
-  rightwall.scale.set(BoxDepth,BoxHeight,WallThickness)
+  rightwall.scale.set(BoxDepth,BoxHeight-CeilingHeight,WallThickness)
   rightwall.rotation.y = Math.PI/2;
-  rightwall.position.set(BoxWidth/2+WallThickness/2, BoxHeight/2+WallThickness/2, 0)
+  rightwall.position.set(BoxWidth/2+PillarThickness/2, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0)
   const leftwall = new THREE.Mesh(wallGeometry, leftwallMaterial);
-  leftwall.scale.set(BoxDepth,BoxHeight,WallThickness)
+  leftwall.scale.set(BoxDepth,BoxHeight-CeilingHeight,WallThickness)
   leftwall.rotation.y = -Math.PI/2;
-  leftwall.position.set(-BoxWidth/2-WallThickness/2, BoxHeight/2+WallThickness/2, 0)
+  leftwall.position.set(-BoxWidth/2-PillarThickness/2, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0)
   const backwall = new THREE.Mesh(wallGeometry, backwallMaterial);
-  backwall.scale.set(BoxWidth+2*WallThickness, BoxHeight+2*WallThickness, WallThickness);
-  backwall.position.set(0, BoxHeight/2+WallThickness/2, -BoxDepth/2-WallThickness/2);
+  backwall.scale.set(BoxWidth, BoxHeight-CeilingHeight, WallThickness);
+  backwall.position.set(0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -(BoxDepth+PillarThickness)/2);
 
-  const width = 10;
-  const height = 10;
-  const intensity = 1;
-  const rectLight = new THREE.RectAreaLight( 0xffffff, intensity,  width, height );
-  rectLight.position.set( 0, BoxHeight + WallThickness/2, 0 );
-  rectLight.lookAt( 0, 0, 0 );
-  CornelBox.add( rectLight )
+  //create ceiling boards
+const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
+const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
+ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
+const ceilingBoard2 = ceilingBoard1.clone();
+ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
+const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
+ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+const ceilingBoard4 = ceilingBoard3.clone();
+ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+
+CornelBox.add(ceilingBoard1);
+CornelBox.add(ceilingBoard2);
+CornelBox.add(ceilingBoard3);
+CornelBox.add(ceilingBoard4);
+
+  // create pillars
+  const pillarsMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
+  const verticalPillar1 = new THREE.Mesh(wallGeometry,pillarsMaterial);
+  verticalPillar1.scale.set(PillarThickness,BoxHeight+PillarThickness,PillarThickness);
+  const verticalPillar2 = verticalPillar1.clone();
+  const verticalPillar3 = verticalPillar1.clone();
+  const verticalPillar4 = verticalPillar1.clone();
+  verticalPillar1.position.set(-(BoxWidth+PillarThickness)/2,(BoxHeight+PillarThickness)/2,(BoxDepth+PillarThickness)/2);
+  verticalPillar2.position.set((BoxWidth+PillarThickness)/2,(BoxHeight+PillarThickness)/2,(BoxDepth+PillarThickness)/2);
+  verticalPillar3.position.set(-(BoxWidth+PillarThickness)/2,(BoxHeight+PillarThickness)/2,-(BoxDepth+PillarThickness)/2);
+  verticalPillar4.position.set((BoxWidth+PillarThickness)/2,(BoxHeight+PillarThickness)/2,-(BoxDepth+PillarThickness)/2);
+  CornelBox.add(verticalPillar1);
+  CornelBox.add(verticalPillar2);
+  CornelBox.add(verticalPillar3);
+  CornelBox.add(verticalPillar4);
+  const horizontalPillar1 = new THREE.Mesh(wallGeometry,pillarsMaterial);
+  horizontalPillar1.scale.set(BoxWidth,PillarThickness,PillarThickness);
+  const horizontalPillar2 = horizontalPillar1.clone();
+  const horizontalPillar3 = horizontalPillar1.clone();
+  const horizontalPillar4 = horizontalPillar1.clone();
+  horizontalPillar1.position.set(0,BoxHeight-CeilingHeight+PillarThickness/2,(BoxDepth+PillarThickness)/2)
+  horizontalPillar2.position.set(0,BoxHeight+PillarThickness/2,(BoxDepth+PillarThickness)/2)
+  horizontalPillar3.position.set(0,BoxHeight-CeilingHeight+PillarThickness/2,-(BoxDepth+PillarThickness)/2)
+  horizontalPillar4.position.set(0,BoxHeight+PillarThickness/2,-(BoxDepth+PillarThickness)/2)
+  const horizontalPillar5 = new THREE.Mesh(wallGeometry,pillarsMaterial);
+  horizontalPillar5.scale.set(PillarThickness,PillarThickness,BoxDepth);
+  const horizontalPillar6 = horizontalPillar5.clone();
+  const horizontalPillar7 = horizontalPillar5.clone();
+  const horizontalPillar8 = horizontalPillar5.clone();
+ 
+  horizontalPillar5.position.set((BoxWidth+PillarThickness)/2,BoxHeight-CeilingHeight+PillarThickness/2,0);
+  horizontalPillar6.position.set(-(BoxWidth+PillarThickness)/2,BoxHeight-CeilingHeight+PillarThickness/2,0);
+  horizontalPillar7.position.set((BoxWidth+PillarThickness)/2,BoxHeight+PillarThickness/2,0);
+  horizontalPillar8.position.set(-(BoxWidth+PillarThickness)/2,BoxHeight+PillarThickness/2,0);
+
+  CornelBox.add(horizontalPillar1);
+  CornelBox.add(horizontalPillar2);
+  CornelBox.add(horizontalPillar3);
+  CornelBox.add(horizontalPillar4);
+  CornelBox.add(horizontalPillar5);
+  CornelBox.add(horizontalPillar6);
+  CornelBox.add(horizontalPillar7);
+  CornelBox.add(horizontalPillar8);
+
   CornelBox.add(leftwall);
   CornelBox.add(rightwall);
   CornelBox.add(ceiling);
@@ -122,24 +179,24 @@ function main()
   CornelBox.add(floor);
 
   // cone
-  const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, BoxHeight/3);
+  const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, (BoxHeight-CeilingHeight)/3);
   const coneMaterial = new THREE.MeshLambertMaterial();
   const cone = new THREE.Mesh(coneGeometry,coneMaterial);
   CornelBox.add(cone);
   // cylinder
-  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, BoxHeight/3);
+  const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, (BoxHeight-CeilingHeight)/3);
   const cylinderMaterial = new THREE.MeshPhongMaterial();
-  const cylinder = new THREE.Mesh(cylinderGeometry, coneMaterial);
+  const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   CornelBox.add(cylinder);
   //sphere
-  const sphereGeometry = new THREE.SphereGeometry(BoxDepth/9,100,100);
+  const sphereGeometry = new THREE.SphereGeometry((BoxHeight-CeilingHeight)/9,100,100);
   const sphereMaterial = new THREE.MeshPhysicalMaterial();
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
 
-  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/12);
-  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,BoxDepth/6);
-  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+BoxHeight/6,-BoxDepth/10);
+  cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/12);
+  sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,(BoxHeight-CeilingHeight)/6);
+  cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/10);
  
   {
     const legGeometry = new THREE.CylinderGeometry(1,1,1);
