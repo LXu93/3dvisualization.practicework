@@ -51,6 +51,8 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
 
     scene = new THREE.Scene();
 
@@ -62,7 +64,7 @@ function init(){
     const light = new THREE.PointLight(color, intensity);
     light.position.set(0,BoxHeight/2-0.1,0);
     scene.add(light);
-    const ambient = new THREE.AmbientLight(color,0.6);
+    const ambient = new THREE.AmbientLight(color,0.1);
     scene.add(ambient);
   }
 
