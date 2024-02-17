@@ -34,7 +34,6 @@
 <script type="module">
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-  import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
   import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
 
 let canvas, renderer, scene, camera, controls, gui;
@@ -59,8 +58,6 @@ function init(){
     renderer.shadowMap.enabled = true;
 
     scene = new THREE.Scene();
-
-    RectAreaLightUniformsLib.init();
   
     const color = 0xFFFFFF;
     const intensity = 1000;

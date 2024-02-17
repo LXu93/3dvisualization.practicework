@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PW2-Ex3</title>
+    <title>PW2-Ex1, Ex2</title>
     <style>
     html, body {
         height: 100%;
@@ -35,12 +35,8 @@
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
-  import { ShadowMapViewer } from 'three/addons/utils/ShadowMapViewer.js';
 
 let canvas, renderer, scene, camera, controls, gui;
-let directionalLight, pointLight, spotLight, hemisphereLight;
-
-// Cornel box parameters
 const BoxHeight = 60;
 const BoxWidth = 50;
 const BoxDepth = 50;
@@ -59,19 +55,16 @@ function init(){
 
     scene = new THREE.Scene();
   
-    // add light
+    {
     const color = 0xFFFFFF;
     const intensity = 1000;
-    pointLight = new THREE.PointLight(color, intensity);
-    pointLight.position.set(0,BoxHeight/2-0.1,0);
-    scene.add(pointLight);
-    spotLight = new THREE.SpotLight(color, intensity);
-    spotLight.position.set(0,BoxHeight/2-0.1,0);
-    scene.add(spotLight);
-    hemisphereLight = new THREE.HemisphereLight( color, 0xffffff, 1 );
-    scene.add( hemisphereLight );
-    directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-    scene.add( directionalLight );
+    const light = new THREE.PointLight(color, intensity);
+    light.position.set(0,BoxHeight/2-0.1,0);
+    scene.add(light);
+    const ambient = new THREE.AmbientLight(color,0.1);
+    scene.add(ambient);
+  }
+
 
     const fov = 75;
     const aspect = 2;  // the canvas default
@@ -86,6 +79,7 @@ function init(){
     gui = new GUI({width: 300});
 
     window.addEventListener( 'resize', onWindowResize );
+
 }
 
 function main() 
@@ -205,7 +199,8 @@ CornelBox.add(ceilingBoard4);
   cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/12);
   sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,(BoxHeight-CeilingHeight)/6);
   cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/10);
-
+ 
+  {
     const legGeometry = new THREE.CylinderGeometry(1,1,1);
     const tableMaterial = new THREE.MeshLambertMaterial();
     const table = new THREE.Group();
@@ -228,71 +223,18 @@ CornelBox.add(ceilingBoard4);
     tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
 
     CornelBox.add(table);
-
-
-  CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0);
-
-  //GUI constants
- 
-  const targetList = {
-    'Cone':cone,
-    'Sphere':sphere,
-    'Cylinder': cylinder,
-    'Default': table
-  }
-  const guiParams = {
-    target:'Default'
   }
 
-  //GUI directional light
-  const directionallightSeting = gui.addFolder('Directional Light');
-  directionallightSeting.add(directionalLight,'visible').name('Activate');
-  directionallightSeting.addColor(directionalLight,'color');
-  directionallightSeting.add( directionalLight, 'intensity',0,50,0.1);
-  directionallightSeting.add(directionalLight.position, 'x',-1,1,0.001).name('position.x');
-  directionallightSeting.add(directionalLight.position, 'y',-1,1,0.001).name('position.y');
-  directionallightSeting.add(directionalLight.position, 'z',-1,1,0.001).name('position.z');
-  directionallightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
-    directionalLight.target = targetList[value];
-  })
+  CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
 
-  //GUI point light
-  const pointlightSeting = gui.addFolder('Point Light');
-  pointlightSeting.add(pointLight,'visible').name('Activate');
-  pointlightSeting.addColor(pointLight,'color');
-  pointlightSeting.add(pointLight, 'intensity',0,10000,1);
-  pointlightSeting.add(pointLight, 'decay',0,5,0.01);
-  pointlightSeting.add(pointLight, 'distance',0,BoxHeight+10,1);
-  pointlightSeting.add(pointLight, 'power',0,20000,1);
+  // GUI set walls colors
+  const colorSetting = gui.addFolder('Color');
+  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color');
+  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color');
+  colorSetting.addColor(floorMaterial, 'color').name('Floor Color');
+  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color');
+  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color');
   
-  //GUI spot light
-  const spotlightSeting = gui.addFolder('Spot Light');
-  spotlightSeting.add(spotLight,'visible').name('Activate');
-  spotlightSeting.addColor(spotLight,'color');
-  spotlightSeting.add(spotLight, 'intensity',0,10000,1);  
-  spotlightSeting.add(spotLight,'angle',0,Math.PI/2,0.01);
-  spotlightSeting.add(spotLight, 'decay',0,5,0.01);
-  spotlightSeting.add(spotLight, 'distance',0,BoxHeight+10,1);
-  spotlightSeting.add(spotLight, 'power',0,5000,1);
-  spotlightSeting.add(spotLight,'penumbra',0,1,0.01);
-  spotlightSeting.add(spotLight.position, 'x',-BoxWidth/2,BoxWidth/2,0.001).name('position.x');
-  //spotlightSeting.add(spotLight.position, 'y',-BoxHeight/2,BoxHeight/2,0.001).name('position.y');
-  spotlightSeting.add(spotLight.position, 'z',-BoxDepth/2,BoxDepth/2,0.001).name('position.z');
-  spotlightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
-    spotLight.target = targetList[value];
-  })
-
-
-  //GUI hemisphere light
-  const hemispherelightSeting = gui.addFolder('Hemisphere Light');
-  hemispherelightSeting.add(hemisphereLight,'visible').name('Activate');
-  hemispherelightSeting.addColor(hemisphereLight,'color');
-  hemispherelightSeting.addColor(hemisphereLight,'groundColor');
-  hemispherelightSeting.add(hemisphereLight,'intensity',0,15,0.1);
-  hemispherelightSeting.add(hemisphereLight.position, 'x',-1,1,0.001).name('position.x');
-  hemispherelightSeting.add(hemisphereLight.position, 'y',-1,1,0.001).name('position.y');
-  hemispherelightSeting.add(hemisphereLight.position, 'z',-1,1,0.001).name('position.z');
-
   requestAnimationFrame(render);
 }
 

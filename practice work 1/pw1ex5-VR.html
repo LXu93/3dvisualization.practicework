@@ -43,22 +43,22 @@ let leg_rf, leg_lf,leg_rh,leg_lh
 let hand, wrist , arm,forearm,palm_r, palm_l, finger_r, finger_l
 let lastTime = 0
 
-const bodylength = 12;
+const bodylength = 13;
 const bodyheight = 2.5;
-const bodyweidth = 3;
+const bodyweidth = 4;
 const thighlenght = 4;
-const thighradius = 0.6;
+const thighradius = 0.7;
 const lowLegradius = 0.4;
 const footradius = 0.3;
 const baseradius = 0.8;
-const baseheight = 0.6;
-const armlength = 5;
+const baseheight = 0.8;
+const armlength = 5.5;
 const armwidth = 0.8;
 const armthinckness = 0.5;
 const wristlength = 0.8;
 const palmthickness = 0.2;
-const fingerlength = 1;
-const palmlength = 0.6;
+const fingerlength = 1.1;
+const palmlength = 0.7;
 const initialPalmAngle = Math.PI/3;
 const initialArmAngle = Math.PI/3;
 const initialForearmAngele = -Math.PI/5*2;
@@ -118,7 +118,26 @@ function main()
 
 function buildMolde(){  
   
-  const bodyGeometry = new THREE.BoxGeometry(bodylength,bodyheight,bodyweidth);
+  const bodyShape = new THREE.Shape();
+  bodyShape.moveTo(-bodylength*1.1/2, bodyheight*0.8/2);
+  bodyShape.lineTo(-bodylength/2, bodyheight/2);
+  bodyShape.lineTo(bodylength/2, bodyheight/2);
+  bodyShape.lineTo(bodylength*1.12/2, bodyheight*0.8/2);
+  bodyShape.lineTo(bodylength*1.06/2, -bodyheight*0.8/2);
+  bodyShape.lineTo(bodylength/2, -bodyheight/2);
+  bodyShape.lineTo(-bodylength/2, -bodyheight*0.6/2);
+  bodyShape.lineTo(-bodylength*1.1/2, bodyheight*0.8/2);
+  const extrudeSettings = {
+  step: 2,
+  depth: bodyweidth*0.8,  
+  bevelEnabled: true,  
+  bevelThickness: 0.4,  
+  bevelSize: 0.4,  
+  bevelSegments: 16,  
+};
+
+  const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
+  //const bodyGeometry = new THREE.BoxGeometry(bodylength,bodyheight,bodyweidth);
   const jointGeometry = new THREE.SphereGeometry(1,16,16);
   const thighGeometry = new THREE.CylinderGeometry(thighradius,lowLegradius,thighlenght);
   const lowLegGeometry = new THREE.CylinderGeometry(lowLegradius,footradius,thighlenght);
@@ -132,10 +151,9 @@ function buildMolde(){
   const fingerJointGeometry = new THREE.CylinderGeometry(palmthickness/2,palmthickness/2,armwidth*1.2);
 
   const body = new THREE.Mesh(bodyGeometry,new THREE.MeshPhongMaterial({color:0xffef3d,shininess:60,specular:0x606060}));
- 
   const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
   const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
-  legJoint.scale.set(thighradius,thighradius,thighradius);
+  legJoint.scale.set(thighradius*1.05,thighradius*1.05,thighradius*1.05);
   const lowLegMain = new THREE.Mesh(lowLegGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
   const lowLegJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2})); 
   lowLegJoint.scale.set(lowLegradius,lowLegradius,lowLegradius);
@@ -274,17 +292,18 @@ function buildMolde(){
   robot.add(arm);
   robot.add(armBase);
   const legHeight = thighlenght*Math.abs(2*Math.cos(initialThighAngle));
-  body.position.set(0,legHeight+bodyheight/4,0);
-  leg_rf.position.set(bodylength/2-1.5,legHeight,bodyweidth/2+thighradius);
-  leg_lf.position.set(bodylength/2-1.5,legHeight,-(bodyweidth/2+thighradius));
-  leg_rh.position.set(-bodylength/2+3,legHeight,bodyweidth/2+thighradius);
-  leg_lh.position.set(-bodylength/2+3,legHeight,-(bodyweidth/2+thighradius));
-  armBase.position.set(bodylength/2-1.5,legHeight+bodyheight/4*3+baseheight/2,0)
-  arm.position.set(bodylength/2-1.5,legHeight+bodyheight/4*3+baseheight,0)
+  body.position.z = -bodyweidth*0.8/2;
+  leg_rf.position.set(bodylength/2-1.5,-bodyheight/4,bodyweidth/2+thighradius);
+  leg_lf.position.set(bodylength/2-1.5,-bodyheight/4,-(bodyweidth/2+thighradius));
+  leg_rh.position.set(-bodylength/2+2,-bodyheight/4,bodyweidth/2+thighradius);
+  leg_lh.position.set(-bodylength/2+2,-bodyheight/4,-(bodyweidth/2+thighradius));
+  armBase.position.set(bodylength/2-1.5,bodyheight/2+baseheight/2,0)
+  arm.position.set(bodylength/2-1.5,bodyheight/2+baseheight,0)
   
   scene.add(robot)
-  robot.position.set(-30,0,0);
-
+  robot.position.set(-30,legHeight+bodyheight/4,0);
+  //robot.position.set(-30,0,0);
+  
   // Animation objects register
   const legAnimaGroup_rf = {
     leg: leg_rf,
@@ -348,11 +367,12 @@ function animate(time){
   const walkingSteps = 5;
   const maxLegFreedom = Math.PI/40;
   const maxLowLegFreedom = Math.PI/20;
-  const maxArmFreedom_z = Math.PI/5*3;
-  const maxForearmFreedom_z = Math.PI/5*2;
-  const maxHandFreedom_z = Math.PI/6;
+  const maxArmFreedom_z = Math.PI*0.7;
+  const maxForearmFreedom_z = Math.PI/2;
+  const maxHandFreedom_z = Math.PI/8;
   const maxPalmFreedom = Math.PI/40;
   const maxFingerFreedom = Math.PI/25;
+  const maxSittingFreedom = Math.PI/10;
 
   // First action: walking
   if(time*speed<2*walkingSteps*Math.PI){
@@ -366,11 +386,25 @@ function animate(time){
       element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*(Math.sin(time*speed-Math.PI));
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
-    robot.position.y=0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
+    robot.position.y=legHeight+bodyheight/4+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
     robot.position.x += deltaTime*speed;
   }
-
   lastActionTime += 2*walkingSteps*Math.PI;
+  
+  // Second Action: sitting up
+  if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
+        robot.rotation.z = maxSittingFreedom*Math.sin((time*speed-lastActionTime)/8);
+        leg_lh.rotation.z = initialThighAngle - maxSittingFreedom/2*Math.sin((time*speed-lastActionTime)/8);
+        lowLeg_lh.rotation.z = initialLowLegAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime)/8);
+        leg_rh.rotation.z = initialThighAngle - maxSittingFreedom/2*Math.sin((time*speed-lastActionTime)/8);
+        lowLeg_rh.rotation.z = initialLowLegAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime)/8);
+        leg_lf.rotation.z = initialThighAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime)/8);
+        lowLeg_lf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime)/8);
+        leg_rf.rotation.z = initialThighAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime)/8);
+        lowLeg_rf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime)/8);
+      }
+  lastActionTime += 4*Math.PI;
+
   // Second Action: moving arm
   if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime)/8);
@@ -383,6 +417,7 @@ function animate(time){
     wrist.rotation.y = Math.PI/2*Math.sin((time*speed-lastActionTime)/4);
   }
   lastActionTime += 2*Math.PI;
+
   // 4th Action: 
   if(time*speed>lastActionTime && time*speed<lastActionTime+6*Math.PI){
     palm_r.rotation.x = initialPalmAngle + maxPalmFreedom*Math.sin((time*speed-lastActionTime)/4);
@@ -391,14 +426,30 @@ function animate(time){
     finger_l.rotation.x = initialPalmAngle - maxFingerFreedom*Math.sin((time*speed-lastActionTime)/4);
   }
   lastActionTime += 6*Math.PI;
+
   //5th Action:
   if(time*speed>lastActionTime && time*speed<lastActionTime+8*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
     forearm.rotation.z = -initialArmAngle + initialForearmAngele + maxForearmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
     hand.rotation.z = -initialForearmAngele + initialHandAngle + maxHandFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
   }
-}
+  lastActionTime += 8*Math.PI;
 
+  //6th Action
+  if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
+        robot.rotation.z = maxSittingFreedom*Math.sin((time*speed-lastActionTime + 4*Math.PI)/8);
+        leg_lh.rotation.z = initialThighAngle - maxSittingFreedom/2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        lowLeg_lh.rotation.z = initialLowLegAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        leg_rh.rotation.z = initialThighAngle - maxSittingFreedom/2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        lowLeg_rh.rotation.z = initialLowLegAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        leg_lf.rotation.z = initialThighAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        lowLeg_lf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        leg_rf.rotation.z = initialThighAngle + maxSittingFreedom*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+        lowLeg_rf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
+      }
+  lastActionTime += 4*Math.PI;
+ 
+}
 function onWindowResize() {
 
 camera.aspect = window.innerWidth / window.innerHeight;

@@ -27,18 +27,21 @@
         width: 50%;
         height: 100%;
       }
+      p{
+        font-size: 1.6rem;
+        color: white;
+        padding: 20px
+      }
       </style>
     </head>
     <body>
       <canvas id="c">
       </canvas>
       <div id = "left">
-        <h1> Perspective Camera</h1>
-        <h2> Fly Controls</h2>
+        <p> Perspective Camera | Fly Controls</p>  
       </div>
         <div id = "right">
-          <h1> Orthographic Camera</h1>
-          <h2> Trackball Controls</h2>
+          <p> Orthographic Camera | Trackball Controls</p>
         </div>
     </body>
 
@@ -70,8 +73,9 @@ let lastTime=0;
 
 let primatives = [];
 
-let shape = new THREE.Shape();
 const distance = 32;
+
+let shape = new THREE.Shape();
 const x = -2.5;
 const y = -5;
 shape.moveTo(x + 2.5, y + 2.5);

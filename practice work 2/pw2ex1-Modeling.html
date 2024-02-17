@@ -34,8 +34,6 @@
 <script type="module">
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-  import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-  import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm';
 
 let canvas, renderer, scene, camera, controls, gui;
 const BoxHeight = 60;
@@ -55,8 +53,6 @@ function init(){
     renderer.setSize( window.innerWidth, window.innerHeight );
 
     scene = new THREE.Scene();
-
-    RectAreaLightUniformsLib.init();
   
     {
     const color = 0xFFFFFF;
@@ -79,7 +75,9 @@ function init(){
 
     controls = new OrbitControls( camera, renderer.domElement );
 
-    gui = new GUI({width: 300});
+    window.addEventListener( 'resize', onWindowResize );
+
+
 }
 
 function main() 
@@ -226,36 +224,22 @@ CornelBox.add(ceilingBoard4);
   }
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
-
-  // GUI set walls colors
-  const colorSetting = gui.addFolder('Color');
-  colorSetting.addColor(backwallMaterial, 'color').name('Back Wall Color');
-  colorSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color');
-  colorSetting.addColor(floorMaterial, 'color').name('Floor Color');
-  colorSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color');
-  colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color');
   
   requestAnimationFrame(render);
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
+function onWindowResize() {
+
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
 
 function render() {
 
-    if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }
