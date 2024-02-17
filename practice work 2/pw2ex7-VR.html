@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PW2-Ex1, Ex2</title>
+    <title>PW2-Ex7</title>
     <style>
     html, body {
         height: 100%;
@@ -37,7 +37,7 @@
   import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
 	import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
   import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-  import {VRButton} from 'three/addons/webxr/VRButton.js';
+  import { VRButton } from 'three/addons/webxr/VRButton.js';
   import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
 	import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
   import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
@@ -152,22 +152,22 @@ function main()
   backwall.position.set(0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -(BoxDepth+PillarThickness)/2);
 
   //create ceiling boards
-const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
-const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
-ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
-const ceilingBoard2 = ceilingBoard1.clone();
-ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
-const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
-ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
-const ceilingBoard4 = ceilingBoard3.clone();
-ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
+  const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
+  ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
+  const ceilingBoard2 = ceilingBoard1.clone();
+  ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
+  const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
+  ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoard4 = ceilingBoard3.clone();
+  ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
 
-CornelBox.add(ceilingBoard1);
-CornelBox.add(ceilingBoard2);
-CornelBox.add(ceilingBoard3);
-CornelBox.add(ceilingBoard4);
+  CornelBox.add(ceilingBoard1);
+  CornelBox.add(ceilingBoard2);
+  CornelBox.add(ceilingBoard3);
+  CornelBox.add(ceilingBoard4);
 
   // create pillars
   const pillarsMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
@@ -218,23 +218,43 @@ CornelBox.add(ceilingBoard4);
   CornelBox.add(ceiling);
   CornelBox.add(backwall);
   CornelBox.add(floor);
+  
+  // load textures
+  const textureLoader = new THREE.TextureLoader();
+  const envmapReflec = textureLoader.load( 'textures/equirectangular.png' );
+  envmapReflec.mapping = THREE.EquirectangularReflectionMapping;
+  const envmapRefra = textureLoader.load( 'textures/equirectangular.png' );
+  envmapRefra.mapping = THREE.EquirectangularRefractionMapping;
+  const texture = textureLoader.load('textures/brick_diffuse.jpg');
+  const alphaMap = textureLoader.load('textures/alphaMap.jpg');
+  const bumpMap = textureLoader.load( 'textures/brick_bump.jpg' );
+  const normalMap = textureLoader.load('textures/waternormals.jpg');
+  const roughnessMap = textureLoader.load('textures/brick_roughness.jpg');
 
   // cone
   const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, (BoxHeight-CeilingHeight)/3);
-  const coneMaterial = new THREE.MeshLambertMaterial();
+  const coneMaterial = new THREE.MeshLambertMaterial({
+    map: texture,
+    bumpMap: bumpMap,
+  });
   const cone = new THREE.Mesh(coneGeometry,coneMaterial);
   CornelBox.add(cone);
   // cylinder
   const cylinderGeometry = new THREE.CylinderGeometry(BoxDepth/9, BoxDepth/9, (BoxHeight-CeilingHeight)/3);
-  const cylinderMaterial = new THREE.MeshPhongMaterial();
+  const cylinderMaterial = new THREE.MeshPhongMaterial({envMap: envmapReflec});
   const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   CornelBox.add(cylinder);
   //sphere
   const sphereGeometry = new THREE.SphereGeometry((BoxHeight-CeilingHeight)/9,100,100);
-  const sphereMaterial = new THREE.MeshPhysicalMaterial();
+  const sphereMaterial = new THREE.MeshPhysicalMaterial({
+    envMap: envmapReflec,
+    roughness: 0,
+    mentalness: 0.3,
+    transmission: 0.7,
+    color: 0x808080,
+  });
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
-
   cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/12);
   sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,(BoxHeight-CeilingHeight)/6);
   cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/10);
@@ -267,8 +287,8 @@ CornelBox.add(ceilingBoard4);
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,-50);
 
-    // surface lighting
-    let rectLights = [];
+  // surface lighting
+  let rectLights = [];
   const intensity = 0.5;
   const ceilingLight = new THREE.RectAreaLight( ceilingMaterial.color, intensity,  BoxWidth, BoxDepth );
   ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.01, 0 );
@@ -311,10 +331,85 @@ CornelBox.add(ceilingBoard4);
   CornelBox.add( leftLight );
   CornelBox.add( rightLight );
 
-  // GUI set walls colors
+  // GUI
+  // GUI set shared rect light properties
   const guiParams = {
-    intensity: intensity
+    intensity: intensity,
   };
+
+  // Set shared material properties
+  let modifyMaterials = [coneMaterial, cylinderMaterial, sphereMaterial]
+  let materialParams = {
+    alphaHash : false,
+    alphaTest : 0.0,
+    transparent: false,
+    opacity: 1.0,
+    depthTest: true,
+    depthWrite: true,
+    side: 'THREE.FrontSide',
+    visible: true,
+    wireframe: false,
+    vertexColors: false,
+    combine: 'THREE.MultiplyOperation'
+  }
+
+  const sideOptions = {
+    'THREE.FrontSide': THREE.FrontSide,
+    'THREE.DoubleSide': THREE.DoubleSide,
+    'THREE.BackSide': THREE.BackSide,
+    }
+  
+  const combineOptions = {
+    'THREE.MultiplyOperation': THREE.MultiplyOperation,
+    'THREE.MixOperation': THREE.MixOperation,
+    'THREE.AddOperation': THREE.AddOperation,
+  }
+  
+  const envMapsOptions = {
+      'none': null,
+      'reflection': envmapReflec,
+      'refraction': envmapRefra
+    }
+
+  const mapsOptions = {
+      'none': null,
+      'texture map': texture
+    }
+
+  const alphaMapsOption = {
+    'none': null,
+    'alpha map': alphaMap
+  }
+
+  const bumpMapsOption = {
+    'none': null,
+    'bump map': bumpMap
+  }
+ 
+  const normalMapsOption = {
+    'none': null,
+    'normal map': normalMap
+  }
+
+  const roughnessMapsOption = {
+    'none': null,
+    'roughness map': roughnessMap
+  }
+
+  let textureOption = {
+    envMap: 'none',
+    map: 'none',
+    bumpMap: 'none',
+    alphaMap: 'none',
+    normalMap: 'none',
+    roughnessMap: 'none'
+  }
+
+  function materialChange(material){
+    material.needsUpdate = true;
+  }
+
+
 
   const rectLightSetting = gui.addFolder('Telelumen');
   
@@ -325,19 +420,172 @@ CornelBox.add(ceilingBoard4);
   });
   rectLightSetting.addColor(backwallMaterial, 'color').name('Back Wall Color').onChange((value)=>{
     backLight.color = value;
-  });;
+  });
   rectLightSetting.addColor(ceilingMaterial, 'color').name('Ceiling Color').onChange((value)=>{
     ceilingLight.color = value;
   });
   rectLightSetting.addColor(floorMaterial, 'color').name('Floor Color').onChange((value)=>{
     floorLight.color = value;
-  });;
+  });
   rectLightSetting.addColor(rightwallMaterial, 'color').name('Right Wall Color').onChange((value)=>{
     rightLight.color = value;
-  });;
+  });
   rectLightSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color').onChange((value)=>{
     leftLight.color = value;
-  });;
+  });
+  
+  // GUI shared properties
+  const materialSetting = gui.addFolder('Material');
+  materialSetting.add(materialParams, 'alphaHash').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.alphaHash = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'alphaTest',0,1,0.1).onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.alphaTest = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'transparent').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.transparent = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'opacity',0,1,0.1).onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.opacity = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'depthTest').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.depthTest = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'depthWrite').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.depthWrite = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams, 'visible').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.visible = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams,'side',Object.keys(sideOptions)).onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.side = sideOptions[value];
+      materialChange(material);
+    })
+  })
+
+ 
+  materialSetting.add(materialParams,'wireframe').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.wireframe = value;
+      materialChange(material);
+    })
+  })
+  materialSetting.add(materialParams,'vertexColors').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.vertexColors = value;
+      materialChange(material);
+    })
+  })
+
+   // GUI Cone material
+  const coneMaterialSetting = gui.addFolder('Lambert Material (Cone)');
+  coneMaterialSetting.addColor(coneMaterial,'color');
+  coneMaterialSetting.addColor(coneMaterial,'emissive');
+  coneMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
+    coneMaterial.envMap = envMapsOptions[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(coneMaterial, 'reflectivity',0,1,0.1);
+  coneMaterialSetting.add(coneMaterial, 'refractionRatio',0,1,0.1);
+  coneMaterialSetting.add(textureOption, 'map',Object.keys(mapsOptions)).onChange((value)=>{
+    coneMaterial.map = mapsOptions[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
+    coneMaterial.alphaMap = alphaMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
+    coneMaterial.bumpMap = bumpMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
+    coneMaterial.normalMap = normalMapsOption[value];
+    materialChange(coneMaterial);
+  });
+  coneMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
+      coneMaterial.combine = combineOptions[value];
+      materialChange(coneMaterial);
+  })
+
+  // GUI sphere material
+  const sphereMaterialSetting = gui.addFolder('Pyhsic Basic Material (Sphere)')
+  sphereMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
+    sphereMaterial.envMap = envMapsOptions[value];
+    materialChange(sphereMaterial);
+  });
+  sphereMaterialSetting.addColor(sphereMaterial, 'color');
+  sphereMaterialSetting.addColor(sphereMaterial, 'emissive');
+  sphereMaterialSetting.add(sphereMaterial, 'roughness',0,1.0,0.01);
+  sphereMaterialSetting.add(textureOption, 'roughnessMap',Object.keys(roughnessMapsOption)).onChange((value)=>{
+    sphereMaterial.roughnessMap = roughnessMapsOption[value];
+    materialChange(sphereMaterial);
+  });
+  sphereMaterialSetting.add(sphereMaterial, 'metalness',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'ior',1.0,2.333,0.001);
+  sphereMaterialSetting.add(sphereMaterial, 'reflectivity',0.0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'iridescence',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'iridescenceIOR',1.0,2.333,0.001);
+  sphereMaterialSetting.addColor(sphereMaterial, 'sheenColor');
+  sphereMaterialSetting.add(sphereMaterial, 'sheen',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'sheenRoughness',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'specularIntensity',0,1.0,0.01);
+  sphereMaterialSetting.addColor(sphereMaterial, 'specularColor');
+  sphereMaterialSetting.add(sphereMaterial, 'transmission',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'thickness',0,1.0,0.01);
+
+  // GUI cylinder material
+  const cylinderMaterialSetting = gui.addFolder('Phong Material (Cylinder)')
+  cylinderMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
+    cylinderMaterial.envMap = envMapsOptions[value];
+    materialChange(sphereMaterial);
+  });
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'color');
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'emissive');
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
+  cylinderMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
+      cylinderMaterial.combine = combineOptions[value];
+      materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(cylinderMaterial, 'flatShading');
+  cylinderMaterialSetting.add(cylinderMaterial, 'reflectivity',0,1,0.01);
+  cylinderMaterialSetting.add(cylinderMaterial, 'refractionRatio',0,1,0.01);
+  cylinderMaterialSetting.add(cylinderMaterial, 'shininess',0,100,1);
+  cylinderMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
+    cylinderMaterial.alphaMap = alphaMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
+    cylinderMaterial.bumpMap = bumpMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+  cylinderMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
+    cylinderMaterial.normalMap = normalMapsOption[value];
+    materialChange(cylinderMaterial);
+  });
+
   
   renderer.setAnimationLoop(render);
 

@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Ex4</title>
+    <title>Pw1-Ex4</title>
     <style>
     html, body {
         height: 100%;
@@ -34,10 +34,11 @@
 <script type="module">
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 let renderer, camera, controls, scene
 let robot
-let calf_rf, calf_lf,calf_rh,calf_lh
+let lowLeg_rf, lowLeg_lf,lowLeg_rh,lowLeg_lh
 let leg_rf, leg_lf,leg_rh,leg_lh
 let hand, wrist , arm,forearm,palm_r, palm_l, finger_r, finger_l
 let lastTime = 0
@@ -47,7 +48,7 @@ const bodyheight = 2.5;
 const bodyweidth = 3;
 const thighlenght = 4;
 const thighradius = 0.6;
-const calfradius = 0.4;
+const lowLegradius = 0.4;
 const footradius = 0.3;
 const baseradius = 0.8;
 const baseheight = 0.6;
@@ -63,7 +64,7 @@ const initialArmAngle = Math.PI/3;
 const initialForearmAngele = -Math.PI/5*2;
 const initialHandAngle = -Math.PI/2;
 const initialThighAngle = -Math.PI*(7/24);
-const initialCalfAngle = -initialThighAngle*2;
+const initialLowLegAngle = -initialThighAngle*2;
 const legHeight = thighlenght*Math.abs(2*Math.cos(initialThighAngle));
 
 let walkingAnimaGroup1 = [];
@@ -72,8 +73,12 @@ let walkingAnimaGroup2 = [];
 init();
 main();
 function init(){
-   const canvas = document.querySelector('#c');
+  const canvas = document.querySelector('#c');
   renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.xr.enabled = true;
+  document.body.appendChild( VRButton.createButton( renderer ) );
 
   const fov = 75;
   const aspect = 2;  // the canvas default
@@ -99,21 +104,24 @@ function init(){
     scene.add(ambient);
 
 }
+
+window.addEventListener( 'resize', onWindowResize );
+
 }
 
 function main() 
 {
   createMarks(scene,1,4,100);
   buildMolde();
-  requestAnimationFrame(render);
+  renderer.setAnimationLoop(render);
 }
 
 function buildMolde(){  
   
   const bodyGeometry = new THREE.BoxGeometry(bodylength,bodyheight,bodyweidth);
   const jointGeometry = new THREE.SphereGeometry(1,16,16);
-  const thighGeometry = new THREE.CylinderGeometry(thighradius,calfradius,thighlenght);
-  const calfGeometry = new THREE.CylinderGeometry(calfradius,footradius,thighlenght);
+  const thighGeometry = new THREE.CylinderGeometry(thighradius,lowLegradius,thighlenght);
+  const lowLegGeometry = new THREE.CylinderGeometry(lowLegradius,footradius,thighlenght);
   const armGeometry = new THREE.BoxGeometry(armwidth,armlength,armthinckness);
   const armBaseGeometry = new THREE.CylinderGeometry(baseradius,baseradius,baseheight);
   const armJointGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,armthinckness+0.1);
@@ -128,9 +136,9 @@ function buildMolde(){
   const thigh_rf = new THREE.Mesh(thighGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
   const legJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xffef3d, shininess:50,specular:0x606060}));
   legJoint.scale.set(thighradius,thighradius,thighradius);
-    const calfMain = new THREE.Mesh(calfGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
-  const calfJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2})); 
-  calfJoint.scale.set(calfradius,calfradius,calfradius);
+  const lowLegMain = new THREE.Mesh(lowLegGeometry,new THREE.MeshPhongMaterial({color:0x808080}));
+  const lowLegJoint = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0xc2c2c2})); 
+  lowLegJoint.scale.set(lowLegradius,lowLegradius,lowLegradius);
   const foot = new THREE.Mesh(jointGeometry,new THREE.MeshPhongMaterial({color:0x696969}));
   foot.scale.set(footradius,footradius,footradius);
   const armBaseCylinder = new THREE.Mesh(armBaseGeometry,new THREE.MeshPhongMaterial({color:0x5a5a5a,shininess:50,specular:0xaaaaaa}));
@@ -206,56 +214,56 @@ function buildMolde(){
   armBase.add(armBaseJoint);
   armBaseJoint.position.y = baseheight/2;
 
-  calf_rf = new THREE.Group();
-  calf_rf.add(calfJoint);
-  calf_rf.add(calfMain);
-  calf_rf.add(foot);
-  calfMain.position.y = -thighlenght/2
+  lowLeg_rf = new THREE.Group();
+  lowLeg_rf.add(lowLegJoint);
+  lowLeg_rf.add(lowLegMain);
+  lowLeg_rf.add(foot);
+  lowLegMain.position.y = -thighlenght/2
   foot.position.y = -thighlenght
 
-  calf_lf = calf_rf.clone();
-  calf_rh = calf_rf.clone();
-  calf_lh = calf_rf.clone();
+  lowLeg_lf = lowLeg_rf.clone();
+  lowLeg_rh = lowLeg_rf.clone();
+  lowLeg_lh = lowLeg_rf.clone();
 
   leg_rf = new THREE.Group();
   leg_rf.add(legJoint);
   leg_rf.add(thigh_rf);
-  leg_rf.add(calf_rf);
-  calf_rf.position.y=-thighlenght
+  leg_rf.add(lowLeg_rf);
+  lowLeg_rf.position.y=-thighlenght
   thigh_rf.position.y = -thighlenght/2
   leg_rf.rotation.z = initialThighAngle;
-  calf_rf.rotation.z = -initialThighAngle*2;
+  lowLeg_rf.rotation.z = -initialThighAngle*2;
 
   leg_lf = new THREE.Group();
   leg_lf.add(legJoint.clone());
   const thigh_lf = thigh_rf.clone();
   leg_lf.add(thigh_lf);
-  leg_lf.add(calf_lf);
-  calf_lf.position.y=-thighlenght
+  leg_lf.add(lowLeg_lf);
+  lowLeg_lf.position.y=-thighlenght
   thigh_lf.position.y = -thighlenght/2
   leg_lf.rotation.z = initialThighAngle;
-  calf_lf.rotation.z = -initialThighAngle*2;
+  lowLeg_lf.rotation.z = -initialThighAngle*2;
 
 
   leg_rh = new THREE.Group();
   leg_rh.add(legJoint.clone());
   const thigh_rh = thigh_rf.clone();
   leg_rh.add(thigh_rh);
-  leg_rh.add(calf_rh);
-  calf_rh.position.y=-thighlenght
+  leg_rh.add(lowLeg_rh);
+  lowLeg_rh.position.y=-thighlenght
   thigh_rh.position.y = -thighlenght/2
   leg_rh.rotation.z = initialThighAngle;
-  calf_rh.rotation.z = -initialThighAngle*2;
+  lowLeg_rh.rotation.z = -initialThighAngle*2;
 
   leg_lh = new THREE.Group();
   leg_lh.add(legJoint.clone());
   const thigh_lh = thigh_rf.clone();
   leg_lh.add(thigh_lh);
-  leg_lh.add(calf_lh);
-  calf_lh.position.y=-thighlenght
+  leg_lh.add(lowLeg_lh);
+  lowLeg_lh.position.y=-thighlenght
   thigh_lh.position.y = -thighlenght/2
   leg_lh.rotation.z = initialThighAngle;
-  calf_lh.rotation.z = -initialThighAngle;
+  lowLeg_lh.rotation.z = -initialThighAngle;
 
   robot = new THREE.Group();
   robot.add(leg_rf);
@@ -280,19 +288,19 @@ function buildMolde(){
   // Animation objects register
   const legAnimaGroup_rf = {
     leg: leg_rf,
-    calf: calf_rf,
+    lowLeg: lowLeg_rf,
   }
   const legAnimaGroup_lf = {
     leg: leg_lf,
-    calf: calf_lf,
+    lowLeg: lowLeg_lf,
   }
   const legAnimaGroup_rh = {
     leg: leg_rh,
-    calf: calf_rh,
+    lowLeg: lowLeg_rh,
   }
   const legAnimaGroup_lh = {
     leg: leg_lh,
-    calf: calf_lh,
+    lowLeg: lowLeg_lh,
   }
 
   walkingAnimaGroup1.push(legAnimaGroup_rf);
@@ -339,7 +347,7 @@ function animate(time){
   const speed =80;
   const walkingSteps = 5;
   const maxLegFreedom = Math.PI/40;
-  const maxCalfFreedom = Math.PI/20;
+  const maxLowLegFreedom = Math.PI/20;
   const maxArmFreedom_z = Math.PI/5*3;
   const maxForearmFreedom_z = Math.PI/5*2;
   const maxHandFreedom_z = Math.PI/6;
@@ -350,12 +358,12 @@ function animate(time){
   if(time*speed<2*walkingSteps*Math.PI){
     // right front leg and left hind leg movement
     walkingAnimaGroup1.forEach(element => {
-      element.calf.rotation.z = initialCalfAngle+maxCalfFreedom*Math.sin(time*speed);
+      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*Math.sin(time*speed);
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*Math.sin(time*speed);
     });
     // left front leg and right hind leg movement
     walkingAnimaGroup2.forEach(element => {
-      element.calf.rotation.z = initialCalfAngle+maxCalfFreedom*(Math.sin(time*speed-Math.PI));
+      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*(Math.sin(time*speed-Math.PI));
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
     robot.position.y=0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
@@ -391,29 +399,22 @@ function animate(time){
   }
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
+function onWindowResize() {
+
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 function render(time) {
-  if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-  }
 
   controls.update();
 
   animate(time);
   renderer.render(scene, camera);
-  requestAnimationFrame(render);
+  
 }
 
 
