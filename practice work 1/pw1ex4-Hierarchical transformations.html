@@ -25,7 +25,8 @@
     p {
       font-size: 1.6rem;
       color: white;
-      padding: 10px 20px
+      padding: 10px 20px;
+      user-select:none;
     }
     </style>
   </head>
@@ -102,6 +103,8 @@ function init(){
   const listener = document.querySelector('#controlsListener');
   controls = new OrbitControls( camera, listener );
   controls.listenToKeyEvents( window ); // optional
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.3;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0xaaaaaa );
@@ -423,20 +426,20 @@ function animate(time){
       }
   lastActionTime += 4*Math.PI;
 
-  // Second Action: moving arm
+  // 3rd Action: moving arm
   if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime)/8);
     forearm.rotation.z = -initialArmAngle + initialForearmAngele + maxForearmFreedom_z*Math.sin((time*speed-lastActionTime)/8);
     hand.rotation.z = -initialForearmAngele + initialHandAngle + maxHandFreedom_z*Math.sin((time*speed-lastActionTime)/8);
   }
   lastActionTime += 4*Math.PI;
-  // Third Action: rotating wrist
+  // 4th Action: rotating wrist
   if(time*speed>lastActionTime && time*speed<lastActionTime+2*Math.PI){
     wrist.rotation.y = Math.PI/2*Math.sin((time*speed-lastActionTime)/4);
   }
   lastActionTime += 2*Math.PI;
 
-  // 4th Action: 
+  // 5th Action: clamping
   if(time*speed>lastActionTime && time*speed<lastActionTime+6*Math.PI){
     palm_r.rotation.x = initialPalmAngle + maxPalmFreedom*Math.sin((time*speed-lastActionTime)/4);
     finger_r.rotation.x = -initialPalmAngle + maxFingerFreedom*Math.sin((time*speed-lastActionTime)/4);
@@ -445,7 +448,7 @@ function animate(time){
   }
   lastActionTime += 6*Math.PI;
 
-  //5th Action:
+  // 6th Action: moving arm
   if(time*speed>lastActionTime && time*speed<lastActionTime+8*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
     forearm.rotation.z = -initialArmAngle + initialForearmAngele + maxForearmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
