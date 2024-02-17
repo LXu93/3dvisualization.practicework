@@ -246,6 +246,7 @@ CornelBox.add(ceilingBoard4);
   const guiParams = {
     target:'Default'
   }
+  
   //GUI directional light
   const directionallightSeting = gui.addFolder('Directional Light');
   directionallightSeting.add(directionalLight,'visible').name('Activate');
@@ -257,6 +258,7 @@ CornelBox.add(ceilingBoard4);
   directionallightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
     directionalLight.target = targetList[value];
   })
+
   //GUI point light
   const pointlightSeting = gui.addFolder('Point Light');
   pointlightSeting.add(pointLight,'visible').name('Activate');
