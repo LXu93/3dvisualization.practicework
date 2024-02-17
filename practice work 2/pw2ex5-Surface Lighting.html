@@ -80,7 +80,7 @@ function init(){
 
     controls = new OrbitControls( camera, renderer.domElement );
 
-    gui = new GUI();
+    gui = new GUI({width: 300});
 
     window.addEventListener( 'resize', onWindowResize );
 }
