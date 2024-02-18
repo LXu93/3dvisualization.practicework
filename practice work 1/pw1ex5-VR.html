@@ -388,8 +388,8 @@ function animate(time){
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
     robot.position.y=legHeight+bodyheight/4+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
-    robot.position.x += deltaTime*speed;
-    robot.position.z += deltaTime*speed;
+    robot.position.x += deltaTime*speed*Math.cos(Math.PI/4);
+    robot.position.z += deltaTime*speed*Math.cos(Math.PI/4);
   }
   lastActionTime += 2*walkingSteps*Math.PI;
   
