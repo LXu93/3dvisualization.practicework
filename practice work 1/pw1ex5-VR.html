@@ -302,7 +302,7 @@ function buildMolde(){
   
   scene.add(robot)
   robot.rotation.y = -Math.PI/4;
-  robot.position.set(-60,legHeight+bodyheight/4,-60);
+  robot.position.set(-60,legHeight+bodyheight/4-5,-60);
   //robot.position.set(-30,0,0);
   
   // Animation objects register
@@ -354,7 +354,7 @@ for (let i=-length/2;i<=length/2;i=i+distance+size){
   for(let j=-length/2;j<=length/2;j=j+distance+size){
     const mark = cross.clone();
     scene.add(mark);
-    mark.position.set(i,0,j);
+    mark.position.set(i,-5,j);
   }  
 }
 }
@@ -387,7 +387,7 @@ function animate(time){
       element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*(Math.sin(time*speed-Math.PI));
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
-    robot.position.y=legHeight+bodyheight/4+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
+    robot.position.y=legHeight+bodyheight/4-5+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
     robot.position.x += deltaTime*speed*Math.cos(Math.PI/4);
     robot.position.z += deltaTime*speed*Math.cos(Math.PI/4);
   }
