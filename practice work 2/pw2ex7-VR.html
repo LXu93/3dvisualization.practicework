@@ -98,7 +98,7 @@ function init(){
     camera.lookAt(0, 0, 0);
     camera.position.set(0, 0, BoxDepth/2+40);
 
-    controls = new OrbitControls( camera, renderer.domElement );
+    //controls = new OrbitControls( camera, renderer.domElement );
 
     // add assistant lines for controls
     const geometry = new THREE.BufferGeometry();
@@ -135,7 +135,7 @@ function init(){
     mesh.position.x = - 10;
     mesh.position.y = 1;
     mesh.position.z = -1;
-    mesh.rotation.y = Math.PI / 6;
+    mesh.rotation.y = Math.PI / 4;
     mesh.scale.setScalar( 60);
     group.add( mesh );
 
