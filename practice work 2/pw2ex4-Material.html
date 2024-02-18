@@ -50,6 +50,10 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    window.addEventListener( 'resize', onWindowResize );
+
 
     scene = new THREE.Scene();
 
@@ -187,7 +191,7 @@ CornelBox.add(ceilingBoard4);
   const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   CornelBox.add(cylinder);
   //sphere
-  const sphereGeometry = new THREE.SphereGeometry((BoxHeight-CeilingHeight)/9,100,100);
+  const sphereGeometry = new THREE.SphereGeometry((BoxHeight-CeilingHeight)/9,32,32);
   const sphereMaterial = new THREE.MeshPhysicalMaterial();
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
@@ -232,10 +236,12 @@ CornelBox.add(ceilingBoard4);
   const texture = textureLoader.load('textures/brick_diffuse.jpg');
   const alphaMap = textureLoader.load('textures/alphaMap.jpg');
   const bumpMap = textureLoader.load( 'textures/brick_bump.jpg' );
-  const normalMap = textureLoader.load('textures/waternormals.jpg');
+  const normalMap = textureLoader.load('textures/textured-aluminum_normal.png');
   const roughnessMap = textureLoader.load('textures/brick_roughness.jpg');
   const specularMap = textureLoader.load('textures/planksSpec.png');
   const displaceMap = textureLoader.load('textures/displacement.png');
+  const aoMap = textureLoader.load('textures/texturedAO.png');
+  const metalnessMap = textureLoader.load('textures/speckled-rust_metallic.png');
   
   // Set shared properties
   let modifyMaterials = [coneMaterial, cylinderMaterial, sphereMaterial]
@@ -261,6 +267,7 @@ CornelBox.add(ceilingBoard4);
     flatShading: false,
     color: 0xffffff,
     emissive: 0x000000,
+    aoMapIntensity: 1,
   }
 
   const sideOptions = {
@@ -316,6 +323,16 @@ CornelBox.add(ceilingBoard4);
     'displacement map': displaceMap
   }
 
+  const aoMapsOption = {
+    'none': null,
+    'AO map': aoMap
+  }
+
+  const metalnessMapsOption = {
+    'none': null,
+    'metalnessMap': metalnessMap
+  }
+
   let textureOption = {
     envMap: 'none',
     map: 'none',
@@ -325,6 +342,9 @@ CornelBox.add(ceilingBoard4);
     roughnessMap: 'none',
     specularMap: 'none',
     displacementMap: 'none',
+    aoMap: 'none',
+    metalnessMap: 'none',
+
   }
 
   function materialChange(material){
@@ -332,7 +352,7 @@ CornelBox.add(ceilingBoard4);
   }
 
   // GUI shared properties
-  const materialGeneralSetting = gui.addFolder('Material (General)');
+  const materialGeneralSetting = gui.addFolder('Material (Common)');
   materialGeneralSetting.add(materialParams, 'alphaHash').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.alphaHash = value;
@@ -432,11 +452,25 @@ CornelBox.add(ceilingBoard4);
       materialChange(material);
     })
   });
+  materialGeneralSetting.add(textureOption, 'aoMap',Object.keys(aoMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.aoMap = aoMapsOption[value];
+      materialChange(material);})
+  });
+
+  materialGeneralSetting.add(materialParams, 'aoMapIntensity', 0, 1, 0.1).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.aoMapIntensity = value;
+      materialChange(material);
+    })
+  });
+
   materialGeneralSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
     modifyMaterials.forEach((material) => {
       material.alphaMap = alphaMapsOption[value];
       materialChange(material);})
   });
+
   materialGeneralSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
     modifyMaterials.forEach((material) => {
       material.bumpMap = bumpMapsOption[value];
@@ -505,7 +539,7 @@ CornelBox.add(ceilingBoard4);
 
   
   // GUI sphere material
-  const sphereMaterialSetting = gui.addFolder('Pyhsic Basic Material (Sphere)')
+  const sphereMaterialSetting = gui.addFolder('Pyhsic Basic Material (Sphere)');
   sphereMaterialSetting.add(sphereMaterial, 'envMapIntensity',0,5,0.1);
   sphereMaterialSetting.add(sphereMaterial, 'roughness',0,1.0,0.01);
   sphereMaterialSetting.add(textureOption, 'roughnessMap',Object.keys(roughnessMapsOption)).onChange((value)=>{
@@ -513,10 +547,16 @@ CornelBox.add(ceilingBoard4);
     materialChange(sphereMaterial);
   });
   sphereMaterialSetting.add(sphereMaterial, 'metalness',0,1.0,0.01);
+  sphereMaterialSetting.add(textureOption, 'metalnessMap',Object.keys(metalnessMapsOption)).onChange((value)=>{
+    sphereMaterial.metalnessMap = metalnessMapsOption[value];
+    materialChange(sphereMaterial);
+  });
   sphereMaterialSetting.add(sphereMaterial, 'ior',1.0,2.333,0.001);
   sphereMaterialSetting.add(sphereMaterial, 'reflectivity',0.0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'iridescence',0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'iridescenceIOR',1.0,2.333,0.001);
+  sphereMaterialSetting.add(sphereMaterial, 'clearcoat',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'clearcoatRoughness',0,1.0,0.01);
   sphereMaterialSetting.addColor(sphereMaterial, 'sheenColor');
   sphereMaterialSetting.add(sphereMaterial, 'sheen',0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'sheenRoughness',0,1.0,0.01);
@@ -527,10 +567,12 @@ CornelBox.add(ceilingBoard4);
 
   // GUI cylinder material
   const cylinderMaterialSetting = gui.addFolder('Phong Material (Cylinder)');
-  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
+  cylinderMaterialSetting.add(cylinderMaterial,'emissiveIntensity',0,9,0.1);
   cylinderMaterialSetting.add(cylinderMaterial, 'reflectivity',0,1,0.01);
   cylinderMaterialSetting.add(cylinderMaterial, 'refractionRatio',0,1,0.01);
   cylinderMaterialSetting.add(cylinderMaterial, 'shininess',0,100,1);
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
+
   cylinderMaterialSetting.add(textureOption, 'specularMap',Object.keys(specularMapsOption)).onChange((value)=>{
       cylinderMaterial.specularMap = specularMapsOption[value];
       materialChange(cylinderMaterial);
@@ -539,24 +581,18 @@ CornelBox.add(ceilingBoard4);
   requestAnimationFrame(render);
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
+function onWindowResize() {
+
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
 
 function render() {
 
-    if (resizeRendererToDisplaySize(renderer)) {
-    const canvas = renderer.domElement;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-    }
+ 
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }

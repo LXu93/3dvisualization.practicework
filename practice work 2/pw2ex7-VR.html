@@ -43,6 +43,7 @@
   import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
 let canvas, renderer, scene, camera, controls, gui;
+let pointLight, directionalLight, spotLight, hemisphereLight;
 const BoxHeight = 60;
 const BoxWidth = 50;
 const BoxDepth = 50;
@@ -69,15 +70,24 @@ function init(){
 
     RectAreaLightUniformsLib.init();
   
-    {
     const color = 0xFFFFFF;
     const intensity = 1000;
-    const light = new THREE.PointLight(color, intensity);
-    light.position.set(0,BoxHeight/2-0.1,0);
-    scene.add(light);
+    pointLight = new THREE.PointLight(color, intensity);
+    pointLight.position.set(0,BoxHeight/2-0.1,0);
+    scene.add(pointLight);
+    spotLight = new THREE.SpotLight(color, intensity);
+    spotLight.position.set(0,BoxHeight/2-0.1,0);
+    scene.add(spotLight);
+    hemisphereLight = new THREE.HemisphereLight( color, 0xffffff, 1 );
+    scene.add( hemisphereLight );
+    directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+    scene.add( directionalLight );
+    spotLight.visible = false;
+    directionalLight.visible = false;
+    hemisphereLight.visible = false;
+
     const ambient = new THREE.AmbientLight(color,0.1);
     scene.add(ambient);
-  }
 
 
     const fov = 75;
@@ -110,9 +120,9 @@ function init(){
 		scene.add( group );
 
     const mesh = new HTMLMesh( gui.domElement );
-    mesh.position.x = - 30;
+    mesh.position.x = - 20;
     mesh.position.y = 1;
-    mesh.position.z = 0;
+    mesh.position.z = -5;
     mesh.rotation.y = Math.PI / 4;
     mesh.scale.setScalar( 60);
     group.add( mesh );
@@ -218,7 +228,7 @@ function main()
   CornelBox.add(ceiling);
   CornelBox.add(backwall);
   CornelBox.add(floor);
-  
+
   // load textures
   const textureLoader = new THREE.TextureLoader();
   const envmapReflec = textureLoader.load( 'textures/equirectangular.png' );
@@ -228,8 +238,12 @@ function main()
   const texture = textureLoader.load('textures/brick_diffuse.jpg');
   const alphaMap = textureLoader.load('textures/alphaMap.jpg');
   const bumpMap = textureLoader.load( 'textures/brick_bump.jpg' );
-  const normalMap = textureLoader.load('textures/waternormals.jpg');
+  const normalMap = textureLoader.load('textures/textured-aluminum_normal.png');
   const roughnessMap = textureLoader.load('textures/brick_roughness.jpg');
+  const specularMap = textureLoader.load('textures/planksSpec.png');
+  const displaceMap = textureLoader.load('textures/displacement.png');
+  const aoMap = textureLoader.load('textures/texturedAO.png');
+  const metalnessMap = textureLoader.load('textures/speckled-rust_metallic.png');
 
   // cone
   const coneGeometry = new THREE.ConeGeometry(BoxDepth/9, (BoxHeight-CeilingHeight)/3);
@@ -249,77 +263,73 @@ function main()
   const sphereMaterial = new THREE.MeshPhysicalMaterial({
     envMap: envmapReflec,
     roughness: 0,
-    mentalness: 0.3,
+    metalness: 0.3,
     transmission: 0.7,
     color: 0x808080,
   });
   const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
   CornelBox.add(sphere);
+
   cone.position.set(-BoxWidth/6,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/12);
   sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,(BoxHeight-CeilingHeight)/6);
   cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/10);
- 
- 
-  {
-    const legGeometry = new THREE.CylinderGeometry(1,1,1);
-    const tableMaterial = new THREE.MeshLambertMaterial();
-    const table = new THREE.Group();
-    const tablePlane = new THREE.Mesh(wallGeometry, tableMaterial);
-    tablePlane.scale.set(BoxDepth*2/3,WallThickness,BoxDepth*2/3);
-    const tableLeg1 = new THREE.Mesh(legGeometry, tableMaterial);
-    tableLeg1.scale.set(BoxDepth/50,BoxHeight/4,BoxDepth/40);
-    const tableLeg2 = tableLeg1.clone();
-    const tableLeg3 = tableLeg1.clone();
-    const tableLeg4 = tableLeg1.clone();
-    table.add(tablePlane);
-    table.add(tableLeg1);
-    table.add(tableLeg2);
-    table.add(tableLeg3);
-    table.add(tableLeg4);
-    tablePlane.position.set(0,BoxHeight/4+WallThickness/2,0);
-    tableLeg1.position.set(BoxDepth/4,BoxHeight/8,BoxDepth/4);
-    tableLeg2.position.set(-BoxDepth/4,BoxHeight/8,BoxDepth/4);
-    tableLeg3.position.set(-BoxDepth/4,BoxHeight/8,-BoxDepth/4);
-    tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
 
-    CornelBox.add(table);
-  }
+  const legGeometry = new THREE.CylinderGeometry(1,1,1);
+  const tableMaterial = new THREE.MeshLambertMaterial();
+  const table = new THREE.Group();
+  const tablePlane = new THREE.Mesh(wallGeometry, tableMaterial);
+  tablePlane.scale.set(BoxDepth*2/3,WallThickness,BoxDepth*2/3);
+  const tableLeg1 = new THREE.Mesh(legGeometry, tableMaterial);
+  tableLeg1.scale.set(BoxDepth/50,BoxHeight/4,BoxDepth/40);
+  const tableLeg2 = tableLeg1.clone();
+  const tableLeg3 = tableLeg1.clone();
+  const tableLeg4 = tableLeg1.clone();
+  table.add(tablePlane);
+  table.add(tableLeg1);
+  table.add(tableLeg2);
+  table.add(tableLeg3);
+  table.add(tableLeg4);
+  tablePlane.position.set(0,BoxHeight/4+WallThickness/2,0);
+  tableLeg1.position.set(BoxDepth/4,BoxHeight/8,BoxDepth/4);
+  tableLeg2.position.set(-BoxDepth/4,BoxHeight/8,BoxDepth/4);
+  tableLeg3.position.set(-BoxDepth/4,BoxHeight/8,-BoxDepth/4);
+  tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
 
-  CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,-50);
+  CornelBox.add(table);
 
   // surface lighting
   let rectLights = [];
   const intensity = 0.5;
   const ceilingLight = new THREE.RectAreaLight( ceilingMaterial.color, intensity,  BoxWidth, BoxDepth );
-  ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.01, 0 );
+  ceilingLight.position.set( 0, BoxHeight + WallThickness/2-0.05, 0 );
   ceilingLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper = new RectAreaLightHelper( ceilingLight );
   ceilingLight.add( rectLightHelper );
   rectLights.push(ceilingLight);
 
   const backLight = new THREE.RectAreaLight( backwallMaterial.color, intensity,  BoxWidth, BoxDepth );
-  backLight.position.set( 0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -BoxDepth/2-PillarThickness/2+WallThickness/2+0.01 );
+  backLight.position.set( 0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -BoxDepth/2-PillarThickness/2+WallThickness/2+0.05 );
   backLight.lookAt( 0, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0 );
   const rectLightHelper2 = new RectAreaLightHelper( backLight );
   backLight.add( rectLightHelper2 );
   rectLights.push(backLight);
 
   const floorLight = new THREE.RectAreaLight( floorMaterial.color, intensity,  BoxWidth, BoxDepth+2*PillarThickness );
-  floorLight.position.set( 0, WallThickness/2+0.01, 0 );
+  floorLight.position.set( 0, WallThickness/2+0.05, 0 );
   floorLight.lookAt( 0, BoxHeight/2 + WallThickness/2, 0 );
   const rectLightHelper3 = new RectAreaLightHelper( floorLight );
   floorLight.add( rectLightHelper3 );
   rectLights.push(floorLight);
 
   const leftLight = new THREE.RectAreaLight( leftwallMaterial.color, intensity,  BoxWidth, BoxDepth );
-  leftLight.position.set(  -BoxWidth/2-PillarThickness/2+WallThickness/2+0.01, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0 );
+  leftLight.position.set(  -BoxWidth/2-PillarThickness/2+WallThickness/2+0.05, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0 );
   leftLight.lookAt( 0, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0 );
   const rectLightHelper4 = new RectAreaLightHelper( leftLight );
   leftLight.add( rectLightHelper4 );
   rectLights.push(leftLight);
 
   const rightLight = new THREE.RectAreaLight( rightwallMaterial.color, intensity,  BoxWidth, BoxDepth );
-  rightLight.position.set( BoxWidth/2+PillarThickness/2-WallThickness/2-0.01, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0);
+  rightLight.position.set( BoxWidth/2+PillarThickness/2-WallThickness/2-0.05, (BoxHeight-CeilingHeight)/2+WallThickness/2, 0);
   rightLight.lookAt( 0, (BoxHeight-CeilingHeight)/2+WallThickness/2 , 0 );
   const rectLightHelper5 = new RectAreaLightHelper( rightLight );
   rightLight.add( rectLightHelper5 );
@@ -331,13 +341,25 @@ function main()
   CornelBox.add( leftLight );
   CornelBox.add( rightLight );
 
+  CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,-60);
+  
   // GUI
-  // GUI set shared rect light properties
-  const guiParams = {
-    intensity: intensity,
+  //GUI constants
+ 
+  const targetList = {
+    'Cone':cone,
+    'Sphere':sphere,
+    'Cylinder': cylinder,
+    'Default': table
   };
 
-  // Set shared material properties
+  const guiParams = {
+    target:'Default',
+    intensity: intensity,
+    activate: true
+  };
+  
+  // Set shared properties
   let modifyMaterials = [coneMaterial, cylinderMaterial, sphereMaterial]
   let materialParams = {
     alphaHash : false,
@@ -350,7 +372,18 @@ function main()
     visible: true,
     wireframe: false,
     vertexColors: false,
-    combine: 'THREE.MultiplyOperation'
+    combine: 'THREE.MultiplyOperation',
+    dithering : false,
+    displacementScale: 1,
+    displacementBias: 0,
+    normalScaleX: 1,
+    normalScaleY: 1,
+    bumpScale:1,
+    envMapIntensity:1,
+    flatShading: false,
+    color: 0xffffff,
+    emissive: 0x000000,
+    aoMapIntensity: 1,
   }
 
   const sideOptions = {
@@ -396,28 +429,58 @@ function main()
     'roughness map': roughnessMap
   }
 
+  const specularMapsOption = {
+    'none': null,
+    'specular map': specularMap
+  }
+
+  const displaceMapsOption = {
+    'none': null,
+    'displacement map': displaceMap
+  }
+
+  const aoMapsOption = {
+    'none': null,
+    'AO map': aoMap
+  }
+
+  const metalnessMapsOption = {
+    'none': null,
+    'metalnessMap': metalnessMap
+  }
+
   let textureOption = {
     envMap: 'none',
     map: 'none',
     bumpMap: 'none',
     alphaMap: 'none',
     normalMap: 'none',
-    roughnessMap: 'none'
-  }
+    roughnessMap: 'none',
+    specularMap: 'none',
+    displacementMap: 'none',
+    aoMap: 'none',
+    metalnessMap: 'none',
 
+  }
   function materialChange(material){
     material.needsUpdate = true;
   }
 
 
-
   const rectLightSetting = gui.addFolder('Telelumen');
-  
+
+  rectLightSetting.add(guiParams, 'activate').onChange((value)=>{
+      rectLights.forEach((rectligt) => {
+        rectligt.visible = value;
+      })
+  });
+
   rectLightSetting.add(guiParams, 'intensity', 0,3,0.01).onChange((value)=>{
       rectLights.forEach((rectligt) => {
         rectligt.intensity = value;
       })
   });
+
   rectLightSetting.addColor(backwallMaterial, 'color').name('Back Wall Color').onChange((value)=>{
     backLight.color = value;
   });
@@ -434,120 +497,264 @@ function main()
     leftLight.color = value;
   });
   
-  // GUI shared properties
-  const materialSetting = gui.addFolder('Material');
-  materialSetting.add(materialParams, 'alphaHash').onChange((value)=>{
+  //GUI directional light
+  const lightSetting = gui.addFolder('Lighting');
+  lightSetting.open(false);
+  const directionallightSeting = lightSetting.addFolder('Directional Light');
+  directionallightSeting.add(directionalLight,'visible').name('Activate');
+  directionallightSeting.addColor(directionalLight,'color');
+  directionallightSeting.add( directionalLight, 'intensity',0,50,0.1);
+  directionallightSeting.add(directionalLight.position, 'x',-1,1,0.001).name('position.x');
+  directionallightSeting.add(directionalLight.position, 'y',-1,1,0.001).name('position.y');
+  directionallightSeting.add(directionalLight.position, 'z',-1,1,0.001).name('position.z');
+  directionallightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
+    directionalLight.target = targetList[value];
+  })
+
+  //GUI point light
+  const pointlightSeting = lightSetting.addFolder('Point Light');
+  pointlightSeting.add(pointLight,'visible').name('Activate');
+  pointlightSeting.addColor(pointLight,'color');
+  pointlightSeting.add(pointLight, 'intensity',0,10000,1);
+  pointlightSeting.add(pointLight, 'decay',0,5,0.01);
+  pointlightSeting.add(pointLight, 'distance',0,BoxHeight+10,1);
+  pointlightSeting.add(pointLight, 'power',0,20000,1);
+  
+  //GUI spot light
+  const spotlightSeting = lightSetting.addFolder('Spot Light');
+  spotlightSeting.add(spotLight,'visible').name('Activate');
+  spotlightSeting.addColor(spotLight,'color');
+  spotlightSeting.add(spotLight, 'intensity',0,10000,1);  
+  spotlightSeting.add(spotLight,'angle',0,Math.PI/2,0.01);
+  spotlightSeting.add(spotLight, 'decay',0,5,0.01);
+  spotlightSeting.add(spotLight, 'distance',0,BoxHeight+10,1);
+  spotlightSeting.add(spotLight, 'power',0,5000,1);
+  spotlightSeting.add(spotLight,'penumbra',0,1,0.01);
+  spotlightSeting.add(spotLight.position, 'x',-BoxWidth/2,BoxWidth/2,0.001).name('position.x');
+  //spotlightSeting.add(spotLight.position, 'y',-BoxHeight/2,BoxHeight/2,0.001).name('position.y');
+  spotlightSeting.add(spotLight.position, 'z',-BoxDepth/2,BoxDepth/2,0.001).name('position.z');
+  spotlightSeting.add(guiParams, 'target', Object.keys(targetList)).onChange((value)=>{
+    spotLight.target = targetList[value];
+  })
+
+  //GUI hemisphere light
+  const hemispherelightSeting = lightSetting.addFolder('Hemisphere Light');
+  hemispherelightSeting.add(hemisphereLight,'visible').name('Activate');
+  hemispherelightSeting.addColor(hemisphereLight,'color');
+  hemispherelightSeting.addColor(hemisphereLight,'groundColor');
+  hemispherelightSeting.add(hemisphereLight,'intensity',0,15,0.1);
+  hemispherelightSeting.add(hemisphereLight.position, 'x',-1,1,0.001).name('position.x');
+  hemispherelightSeting.add(hemisphereLight.position, 'y',-1,1,0.001).name('position.y');
+  hemispherelightSeting.add(hemisphereLight.position, 'z',-1,1,0.001).name('position.z');
+
+//GUI Material
+const materialSetting = gui.addFolder('Materials');
+  materialSetting.open(false);
+// GUI shared properties
+const materialGeneralSetting = materialSetting.addFolder('Material (Common)');
+  materialGeneralSetting.add(materialParams, 'alphaHash').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.alphaHash = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'alphaTest',0,1,0.1).onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'alphaTest',0,1,0.1).onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.alphaTest = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'transparent').onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'transparent').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.transparent = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'opacity',0,1,0.1).onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'opacity',0,1,0.1).onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.opacity = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'depthTest').onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'depthTest').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.depthTest = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'depthWrite').onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'depthWrite').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.depthWrite = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams, 'visible').onChange((value)=>{
+  materialGeneralSetting.add(materialParams, 'visible').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.visible = value;
       materialChange(material);
     })
   })
-  materialSetting.add(materialParams,'side',Object.keys(sideOptions)).onChange((value)=>{
+  materialGeneralSetting.add(materialParams,'side',Object.keys(sideOptions)).onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.side = sideOptions[value];
       materialChange(material);
     })
-  })
-
+  });
+  materialGeneralSetting.add(materialParams, 'flatShading').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.flatShading = value;
+      materialChange(material);
+    })
+  });
  
-  materialSetting.add(materialParams,'wireframe').onChange((value)=>{
+  materialGeneralSetting.add(materialParams,'wireframe').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.wireframe = value;
       materialChange(material);
     })
-  })
-  materialSetting.add(materialParams,'vertexColors').onChange((value)=>{
+  });
+
+  materialGeneralSetting.add(materialParams,'vertexColors').onChange((value)=>{
     modifyMaterials.forEach((material)=>{
       material.vertexColors = value;
       materialChange(material);
     })
-  })
+  });
+
+  materialGeneralSetting.add(materialParams,'dithering').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.dithering = value;
+      materialChange(material);
+    })
+  });
+  
+  materialGeneralSetting.addColor(materialParams,'color').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.setValues({color:value});
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.addColor(materialParams,'emissive').onChange((value)=>{
+    modifyMaterials.forEach((material)=>{
+      material.setValues({emissive:value});
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(textureOption, 'map',Object.keys(mapsOptions)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.map = mapsOptions[value];
+      materialChange(material);})
+  });
+ materialGeneralSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
+  modifyMaterials.forEach((material) => {
+      material.envMap = envMapsOptions[value];
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(textureOption, 'aoMap',Object.keys(aoMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.aoMap = aoMapsOption[value];
+      materialChange(material);})
+  });
+
+  materialGeneralSetting.add(materialParams, 'aoMapIntensity', 0, 1, 0.1).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.aoMapIntensity = value;
+      materialChange(material);
+    })
+  });
+
+  materialGeneralSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.alphaMap = alphaMapsOption[value];
+      materialChange(material);})
+  });
+
+  materialGeneralSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.bumpMap = bumpMapsOption[value];
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(materialParams, 'bumpScale', 0, 1, 0.1).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.bumpScale = value;
+      materialChange(material);
+    })
+  });
+ materialGeneralSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.normalMap = normalMapsOption[value];
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(materialParams, 'normalScaleX',0,1,0.1).name('normalScale.x').onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.normalScale.x = value;
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(materialParams, 'normalScaleY',0,1,0.1).name('normalScale.y').onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.normalScale.y = value;
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(textureOption, 'displacementMap',Object.keys(displaceMapsOption)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.displacementMap = displaceMapsOption[value];
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(materialParams, 'displacementScale',0,3,0.1).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.displacementScale = value;
+      materialChange(material);
+    })
+  });
+  materialGeneralSetting.add(materialParams, 'displacementBias',0,1,0.1).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.displacementBias = value;
+      materialChange(material);
+    })
+  });
+
+  materialGeneralSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
+    modifyMaterials.forEach((material) => {
+      material.combine = combineOptions[value];
+      materialChange(material);
+    })
+  });
 
    // GUI Cone material
-  const coneMaterialSetting = gui.addFolder('Lambert Material (Cone)');
-  coneMaterialSetting.addColor(coneMaterial,'color');
-  coneMaterialSetting.addColor(coneMaterial,'emissive');
-  coneMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
-    coneMaterial.envMap = envMapsOptions[value];
-    materialChange(coneMaterial);
-  });
+  const coneMaterialSetting = materialSetting.addFolder('Lambert Material (Cone)');
+  coneMaterialSetting.add(coneMaterial,'emissiveIntensity',0,9,0.1);
   coneMaterialSetting.add(coneMaterial, 'reflectivity',0,1,0.1);
   coneMaterialSetting.add(coneMaterial, 'refractionRatio',0,1,0.1);
-  coneMaterialSetting.add(textureOption, 'map',Object.keys(mapsOptions)).onChange((value)=>{
-    coneMaterial.map = mapsOptions[value];
-    materialChange(coneMaterial);
-  });
-  coneMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
-    coneMaterial.alphaMap = alphaMapsOption[value];
-    materialChange(coneMaterial);
-  });
-  coneMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
-    coneMaterial.bumpMap = bumpMapsOption[value];
-    materialChange(coneMaterial);
-  });
-  coneMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
-    coneMaterial.normalMap = normalMapsOption[value];
-    materialChange(coneMaterial);
-  });
-  coneMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
-      coneMaterial.combine = combineOptions[value];
+  coneMaterialSetting.add(textureOption, 'specularMap',Object.keys(specularMapsOption)).onChange((value)=>{
+      coneMaterial.specularMap = specularMapsOption[value];
       materialChange(coneMaterial);
-  })
+  });
 
   // GUI sphere material
-  const sphereMaterialSetting = gui.addFolder('Pyhsic Basic Material (Sphere)')
-  sphereMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
-    sphereMaterial.envMap = envMapsOptions[value];
-    materialChange(sphereMaterial);
-  });
-  sphereMaterialSetting.addColor(sphereMaterial, 'color');
-  sphereMaterialSetting.addColor(sphereMaterial, 'emissive');
+  const sphereMaterialSetting = materialSetting.addFolder('Pyhsic Basic Material (Sphere)');
+  sphereMaterialSetting.add(sphereMaterial, 'envMapIntensity',0,5,0.1);
   sphereMaterialSetting.add(sphereMaterial, 'roughness',0,1.0,0.01);
   sphereMaterialSetting.add(textureOption, 'roughnessMap',Object.keys(roughnessMapsOption)).onChange((value)=>{
     sphereMaterial.roughnessMap = roughnessMapsOption[value];
     materialChange(sphereMaterial);
   });
   sphereMaterialSetting.add(sphereMaterial, 'metalness',0,1.0,0.01);
+  sphereMaterialSetting.add(textureOption, 'metalnessMap',Object.keys(metalnessMapsOption)).onChange((value)=>{
+    sphereMaterial.metalnessMap = metalnessMapsOption[value];
+    materialChange(sphereMaterial);
+  });
   sphereMaterialSetting.add(sphereMaterial, 'ior',1.0,2.333,0.001);
   sphereMaterialSetting.add(sphereMaterial, 'reflectivity',0.0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'iridescence',0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'iridescenceIOR',1.0,2.333,0.001);
+  sphereMaterialSetting.add(sphereMaterial, 'clearcoat',0,1.0,0.01);
+  sphereMaterialSetting.add(sphereMaterial, 'clearcoatRoughness',0,1.0,0.01);
   sphereMaterialSetting.addColor(sphereMaterial, 'sheenColor');
   sphereMaterialSetting.add(sphereMaterial, 'sheen',0,1.0,0.01);
   sphereMaterialSetting.add(sphereMaterial, 'sheenRoughness',0,1.0,0.01);
@@ -557,35 +764,17 @@ function main()
   sphereMaterialSetting.add(sphereMaterial, 'thickness',0,1.0,0.01);
 
   // GUI cylinder material
-  const cylinderMaterialSetting = gui.addFolder('Phong Material (Cylinder)')
-  cylinderMaterialSetting.add(textureOption, 'envMap',Object.keys(envMapsOptions)).onChange((value)=>{
-    cylinderMaterial.envMap = envMapsOptions[value];
-    materialChange(sphereMaterial);
-  });
-  cylinderMaterialSetting.addColor(cylinderMaterial, 'color');
-  cylinderMaterialSetting.addColor(cylinderMaterial, 'emissive');
-  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
-  cylinderMaterialSetting.add(materialParams,'combine',Object.keys(combineOptions)).onChange((value)=>{
-      cylinderMaterial.combine = combineOptions[value];
-      materialChange(cylinderMaterial);
-  });
-  cylinderMaterialSetting.add(cylinderMaterial, 'flatShading');
+  const cylinderMaterialSetting = materialSetting.addFolder('Phong Material (Cylinder)');
+  cylinderMaterialSetting.add(cylinderMaterial,'emissiveIntensity',0,9,0.1);
   cylinderMaterialSetting.add(cylinderMaterial, 'reflectivity',0,1,0.01);
   cylinderMaterialSetting.add(cylinderMaterial, 'refractionRatio',0,1,0.01);
   cylinderMaterialSetting.add(cylinderMaterial, 'shininess',0,100,1);
-  cylinderMaterialSetting.add(textureOption, 'alphaMap',Object.keys(alphaMapsOption)).onChange((value)=>{
-    cylinderMaterial.alphaMap = alphaMapsOption[value];
-    materialChange(cylinderMaterial);
-  });
-  cylinderMaterialSetting.add(textureOption, 'bumpMap',Object.keys(bumpMapsOption)).onChange((value)=>{
-    cylinderMaterial.bumpMap = bumpMapsOption[value];
-    materialChange(cylinderMaterial);
-  });
-  cylinderMaterialSetting.add(textureOption, 'normalMap',Object.keys(normalMapsOption)).onChange((value)=>{
-    cylinderMaterial.normalMap = normalMapsOption[value];
-    materialChange(cylinderMaterial);
-  });
+  cylinderMaterialSetting.addColor(cylinderMaterial, 'specular');
 
+  cylinderMaterialSetting.add(textureOption, 'specularMap',Object.keys(specularMapsOption)).onChange((value)=>{
+      cylinderMaterial.specularMap = specularMapsOption[value];
+      materialChange(cylinderMaterial);
+  });
   
   renderer.setAnimationLoop(render);
 
