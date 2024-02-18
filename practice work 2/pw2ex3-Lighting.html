@@ -79,7 +79,7 @@ function init(){
     const far = 400;
     camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.lookAt(0, 0, 0);
-    camera.position.set(0, 0, BoxDepth/2+60);
+    camera.position.set(0, 0, BoxDepth/2+45);
 
     controls = new OrbitControls( camera, renderer.domElement );
 
