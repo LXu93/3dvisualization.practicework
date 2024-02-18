@@ -302,7 +302,7 @@ function buildMolde(){
   
   scene.add(robot)
   robot.rotation.y = -Math.PI/4;
-  robot.position.set(-60,legHeight+bodyheight/4,-60);
+  robot.position.set(-80,legHeight+bodyheight/4,-80);
   //robot.position.set(-30,0,0);
   
   // Animation objects register
@@ -365,7 +365,7 @@ function animate(time){
   lastTime = time;
   let lastActionTime = 0;
   const speed =80;
-  const walkingSteps = 5;
+  const walkingSteps = 10;
   const maxLegFreedom = Math.PI/40;
   const maxLowLegFreedom = Math.PI/20;
   const maxArmFreedom_z = Math.PI*0.7;
