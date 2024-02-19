@@ -301,7 +301,7 @@ function buildMolde(){
   arm.position.set(bodylength/2-1.5,bodyheight/2+baseheight,0)
   
   scene.add(robot)
-  robot.rotation.y = -Math.PI/4;
+  robot.rotation.y = -Math.PI/6;
   robot.position.set(-60,legHeight+bodyheight/4-5,-60);
   //robot.position.set(-30,0,0);
   
@@ -388,8 +388,8 @@ function animate(time){
       element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
     });
     robot.position.y=legHeight+bodyheight/4-5+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
-    robot.position.x += deltaTime*speed*Math.cos(Math.PI/4);
-    robot.position.z += deltaTime*speed*Math.cos(Math.PI/4);
+    robot.position.x += deltaTime*speed*Math.cos(Math.PI/6);
+    robot.position.z += deltaTime*speed*Math.sin(Math.PI/6);
   }
   lastActionTime += 2*walkingSteps*Math.PI;
   
