@@ -53,10 +53,7 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    window.addEventListener( 'resize', onWindowResize );
-
+  
     scene = new THREE.Scene();
 
     RectAreaLightUniformsLib.init();
@@ -741,17 +738,25 @@ const materialGeneralSetting = materialSetting.addFolder('Material (Common)');
   requestAnimationFrame(render);
 }
   
-function onWindowResize() {
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
 
-camera.aspect = window.innerWidth / window.innerHeight;
-camera.updateProjectionMatrix();
-
-renderer.setSize( window.innerWidth, window.innerHeight );
-
-}
 
 function render() {
 
+  if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }

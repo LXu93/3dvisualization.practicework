@@ -50,10 +50,6 @@ main();
 function init(){
     canvas = document.querySelector('#c');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    window.addEventListener( 'resize', onWindowResize );
-
 
     scene = new THREE.Scene();
 
@@ -581,17 +577,25 @@ CornelBox.add(ceilingBoard4);
   requestAnimationFrame(render);
 }
 
-function onWindowResize() {
 
-camera.aspect = window.innerWidth / window.innerHeight;
-camera.updateProjectionMatrix();
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+      renderer.setSize(width, height, false);
+    }
+    return needResize;
+  }
 
-renderer.setSize( window.innerWidth, window.innerHeight );
-
-}
 
 function render() {
-
+  if (resizeRendererToDisplaySize(renderer)) {
+      const canvas = renderer.domElement;
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    }
  
     renderer.render(scene, camera);
     requestAnimationFrame(render);
