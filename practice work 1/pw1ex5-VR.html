@@ -368,6 +368,7 @@ function animate(time){
   const walkingSteps = 10;
   const maxLegFreedom = Math.PI/40;
   const maxLowLegFreedom = Math.PI/20;
+  const maxArmFreedom_x = Math.PI/4;
   const maxArmFreedom_z = Math.PI*0.7;
   const maxForearmFreedom_z = Math.PI/2;
   const maxHandFreedom_z = Math.PI/8;
@@ -376,18 +377,18 @@ function animate(time){
   const maxSittingFreedom = Math.PI/10;
 
   // First action: walking
-  if(time*speed<2*walkingSteps*Math.PI){
+  if((time*speed-lastActionTime)<2*walkingSteps*Math.PI){
     // right front leg and left hind leg movement
     walkingAnimaGroup1.forEach(element => {
-      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*Math.sin(time*speed);
-      element.leg.rotation.z = initialThighAngle+maxLegFreedom*Math.sin(time*speed);
+      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*Math.sin((time*speed-lastActionTime));
+      element.leg.rotation.z = initialThighAngle+maxLegFreedom*Math.sin((time*speed-lastActionTime));
     });
     // left front leg and right hind leg movement
     walkingAnimaGroup2.forEach(element => {
-      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*(Math.sin(time*speed-Math.PI));
-      element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin(time*speed-Math.PI));
+      element.lowLeg.rotation.z = initialLowLegAngle+maxLowLegFreedom*(Math.sin((time*speed-lastActionTime)-Math.PI));
+      element.leg.rotation.z = initialThighAngle+maxLegFreedom*(Math.sin((time*speed-lastActionTime)-Math.PI));
     });
-    robot.position.y=legHeight+bodyheight/4-5+0.4*(Math.sin(2*time*speed-Math.PI/4)+1)
+    robot.position.y=legHeight+bodyheight/4-5+0.4*(Math.sin(2*(time*speed-lastActionTime)-Math.PI/4)+1)
     robot.position.x += deltaTime*speed*Math.cos(Math.PI/6);
     robot.position.z += deltaTime*speed*Math.sin(Math.PI/6);
   }
@@ -406,21 +407,29 @@ function animate(time){
         lowLeg_rf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime)/8);
       }
   lastActionTime += 4*Math.PI;
+  
+  // 3rd Action: rotating arm
+  if(time*speed>lastActionTime && time*speed<lastActionTime+2*Math.PI){
+        arm.rotation.x = maxArmFreedom_x*Math.sin((time*speed-lastActionTime)/4);
+        
+      }
+  lastActionTime += 2*Math.PI;
 
-  // Second Action: moving arm
+  // 4th Action: moving arm
   if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime)/8);
     forearm.rotation.z = -initialArmAngle + initialForearmAngele + maxForearmFreedom_z*Math.sin((time*speed-lastActionTime)/8);
     hand.rotation.z = -initialForearmAngele + initialHandAngle + maxHandFreedom_z*Math.sin((time*speed-lastActionTime)/8);
   }
   lastActionTime += 4*Math.PI;
-  // Third Action: rotating wrist
+
+  // 5th Action: rotating wrist
   if(time*speed>lastActionTime && time*speed<lastActionTime+2*Math.PI){
-    wrist.rotation.y = Math.PI/2*Math.sin((time*speed-lastActionTime)/4);
+    wrist.rotation.y = (Math.PI/2-maxArmFreedom_x)*Math.sin((time*speed-lastActionTime)/4);
   }
   lastActionTime += 2*Math.PI;
 
-  // 4th Action: 
+  // 6th Action: clamping
   if(time*speed>lastActionTime && time*speed<lastActionTime+6*Math.PI){
     palm_r.rotation.x = initialPalmAngle + maxPalmFreedom*Math.sin((time*speed-lastActionTime)/4);
     finger_r.rotation.x = -initialPalmAngle + maxFingerFreedom*Math.sin((time*speed-lastActionTime)/4);
@@ -429,7 +438,7 @@ function animate(time){
   }
   lastActionTime += 6*Math.PI;
 
-  //5th Action:
+  // 7th Action: moving arm
   if(time*speed>lastActionTime && time*speed<lastActionTime+8*Math.PI){
     arm.rotation.z = initialArmAngle - maxArmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
     forearm.rotation.z = -initialArmAngle + initialForearmAngele + maxForearmFreedom_z*Math.sin((time*speed-lastActionTime+8*Math.PI)/16);
@@ -437,7 +446,14 @@ function animate(time){
   }
   lastActionTime += 8*Math.PI;
 
-  //6th Action
+  // 8th Action: totating arm back
+  if(time*speed>lastActionTime && time*speed<lastActionTime+2*Math.PI){
+        arm.rotation.x = maxArmFreedom_x*Math.sin((time*speed-lastActionTime+2*Math.PI)/4);
+        wrist.rotation.y = (Math.PI/2-maxArmFreedom_x)*Math.sin((time*speed-lastActionTime+2*Math.PI)/4)
+      }
+  lastActionTime += 2*Math.PI;
+
+  //9th Action: recovering posture
   if(time*speed>lastActionTime && time*speed<lastActionTime+4*Math.PI){
         robot.rotation.z = maxSittingFreedom*Math.sin((time*speed-lastActionTime + 4*Math.PI)/8);
         leg_lh.rotation.z = initialThighAngle - maxSittingFreedom/2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
@@ -450,6 +466,7 @@ function animate(time){
         lowLeg_rf.rotation.z = initialLowLegAngle - maxSittingFreedom*2*Math.sin((time*speed-lastActionTime+ 4*Math.PI)/8);
       }
   lastActionTime += 4*Math.PI;
+ 
  
 }
 
