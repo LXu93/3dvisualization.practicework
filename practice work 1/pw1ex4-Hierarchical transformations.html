@@ -166,7 +166,7 @@ function buildMolde(){
   const armBaseGeometry = new THREE.CylinderGeometry(baseradius,baseradius,baseheight);
   const armJointGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,armthinckness+0.1);
   const wristGeometry = new THREE.CylinderGeometry(armwidth/2*1.2,armwidth/2*1.2,wristlength);
-  const wristJointGeometry = new THREE.SphereGeometry(armwidth/2*1.2,16,16);
+  const wristJointGeometry = new THREE.SphereGeometry(armwidth/2*1.2,16,16, 0, Math.PI * 2, 0, Math.PI * 0.5);
   const palmGeometry = new THREE.BoxGeometry(armwidth*1.2,palmlength,palmthickness);
   const fingerGeometry = new THREE.BoxGeometry(armwidth*1.2,fingerlength,palmthickness);
   const fingerJointGeometry = new THREE.CylinderGeometry(palmthickness/2,palmthickness/2,armwidth*1.2);
