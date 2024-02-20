@@ -102,7 +102,6 @@ function init(){
     scene.add(light);
     const ambient = new THREE.AmbientLight( 0xbababa ); 
     scene.add(ambient);
-
 }
 
 window.addEventListener( 'resize', onWindowResize );
@@ -128,16 +127,17 @@ function buildMolde(){
   bodyShape.lineTo(-bodylength/2, -bodyheight*0.6/2);
   bodyShape.lineTo(-bodylength*1.1/2, bodyheight*0.8/2);
   const extrudeSettings = {
-  step: 2,
-  depth: bodyweidth*0.8,  
-  bevelEnabled: true,  
-  bevelThickness: 0.4,  
-  bevelSize: 0.4,  
-  bevelSegments: 16,  
-};
+    
+    step: 2,
+    depth: bodyweidth*0.8,  
+    bevelEnabled: true,  
+    bevelThickness: 0.4,  
+    bevelSize: 0.4,  
+    bevelSegments: 16,  
+
+  };
 
   const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
-  //const bodyGeometry = new THREE.BoxGeometry(bodylength,bodyheight,bodyweidth);
   const jointGeometry = new THREE.SphereGeometry(1,16,16);
   const thighGeometry = new THREE.CylinderGeometry(thighradius,lowLegradius,thighlenght);
   const lowLegGeometry = new THREE.CylinderGeometry(lowLegradius,footradius,thighlenght);

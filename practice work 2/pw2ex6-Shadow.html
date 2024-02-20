@@ -136,22 +136,22 @@ function main()
   backwall.position.set(0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -(BoxDepth+PillarThickness)/2);
 
   //create ceiling boards
-const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
-const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
-ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
-const ceilingBoard2 = ceilingBoard1.clone();
-ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
-const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
-ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
-const ceilingBoard4 = ceilingBoard3.clone();
-ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
+  const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
+  ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
+  const ceilingBoard2 = ceilingBoard1.clone();
+  ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
+  const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
+  ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoard4 = ceilingBoard3.clone();
+  ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
 
-CornelBox.add(ceilingBoard1);
-CornelBox.add(ceilingBoard2);
-CornelBox.add(ceilingBoard3);
-CornelBox.add(ceilingBoard4);
+  CornelBox.add(ceilingBoard1);
+  CornelBox.add(ceilingBoard2);
+  CornelBox.add(ceilingBoard3);
+  CornelBox.add(ceilingBoard4);
 
   // create pillars
   const pillarsMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
@@ -345,10 +345,8 @@ CornelBox.add(ceilingBoard4);
   });
   directionallightSeting.add(directionalLight.shadow, 'radius',0,5,0.1).name('shadow.radius');
   directionallightSeting.add(directionalLight.shadow, 'bias',0,0.0003,0.00005).name('shadow.bias');
-  //directionallightSeting.add(directionalLight.shadow, 'blurSamples').name('shadow.blurSamples');
 
   //GUI point light
-
   const pointlightSeting = gui.addFolder('Point Light');
   pointlightSeting.add(pointLight,'visible').name('Activate');
   pointlightSeting.addColor(pointLight,'color');

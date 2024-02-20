@@ -109,22 +109,22 @@ function main()
   backwall.position.set(0, (BoxHeight-CeilingHeight)/2+WallThickness/2, -(BoxDepth+PillarThickness)/2);
 
   //create ceiling boards
-const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
-const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
-ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
-const ceilingBoard2 = ceilingBoard1.clone();
-ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
-const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
-ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
-ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
-const ceilingBoard4 = ceilingBoard3.clone();
-ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoardsMaterial = new THREE.MeshLambertMaterial({color: 0x88ee00});
+  const ceilingBoard1 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard1.scale.set(BoxWidth,CeilingHeight-PillarThickness,WallThickness);
+  ceilingBoard1.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,(BoxDepth+PillarThickness)/2);
+  const ceilingBoard2 = ceilingBoard1.clone();
+  ceilingBoard2.position.set(0,BoxHeight-CeilingHeight/2+PillarThickness/2,-(BoxDepth+PillarThickness)/2);
+  const ceilingBoard3 = new THREE.Mesh(wallGeometry,ceilingBoardsMaterial);
+  ceilingBoard3.scale.set(WallThickness,CeilingHeight-PillarThickness, BoxDepth);
+  ceilingBoard3.position.set(BoxWidth/2+PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
+  const ceilingBoard4 = ceilingBoard3.clone();
+  ceilingBoard4.position.set(-BoxWidth/2-PillarThickness/2,BoxHeight-CeilingHeight/2+PillarThickness/2,0);
 
-CornelBox.add(ceilingBoard1);
-CornelBox.add(ceilingBoard2);
-CornelBox.add(ceilingBoard3);
-CornelBox.add(ceilingBoard4);
+  CornelBox.add(ceilingBoard1);
+  CornelBox.add(ceilingBoard2);
+  CornelBox.add(ceilingBoard3);
+  CornelBox.add(ceilingBoard4);
 
   // create pillars
   const pillarsMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
@@ -196,30 +196,29 @@ CornelBox.add(ceilingBoard4);
   sphere.position.set(0,BoxHeight/4+WallThickness+BoxDepth/9,(BoxHeight-CeilingHeight)/6);
   cylinder.position.set(BoxWidth/7,BoxHeight/4+WallThickness+(BoxHeight-CeilingHeight)/6,-BoxDepth/10);
  
-  {
-    const legGeometry = new THREE.CylinderGeometry(1,1,1);
-    const tableMaterial = new THREE.MeshLambertMaterial();
-    const table = new THREE.Group();
-    const tablePlane = new THREE.Mesh(wallGeometry, tableMaterial);
-    tablePlane.scale.set(BoxDepth*2/3,WallThickness,BoxDepth*2/3);
-    const tableLeg1 = new THREE.Mesh(legGeometry, tableMaterial);
-    tableLeg1.scale.set(BoxDepth/50,BoxHeight/4,BoxDepth/40);
-    const tableLeg2 = tableLeg1.clone();
-    const tableLeg3 = tableLeg1.clone();
-    const tableLeg4 = tableLeg1.clone();
-    table.add(tablePlane);
-    table.add(tableLeg1);
-    table.add(tableLeg2);
-    table.add(tableLeg3);
-    table.add(tableLeg4);
-    tablePlane.position.set(0,BoxHeight/4+WallThickness/2,0);
-    tableLeg1.position.set(BoxDepth/4,BoxHeight/8,BoxDepth/4);
-    tableLeg2.position.set(-BoxDepth/4,BoxHeight/8,BoxDepth/4);
-    tableLeg3.position.set(-BoxDepth/4,BoxHeight/8,-BoxDepth/4);
-    tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
+  //Create the table
+  const legGeometry = new THREE.CylinderGeometry(1,1,1);
+  const tableMaterial = new THREE.MeshLambertMaterial();
+  const table = new THREE.Group();
+  const tablePlane = new THREE.Mesh(wallGeometry, tableMaterial);
+  tablePlane.scale.set(BoxDepth*2/3,WallThickness,BoxDepth*2/3);
+  const tableLeg1 = new THREE.Mesh(legGeometry, tableMaterial);
+  tableLeg1.scale.set(BoxDepth/50,BoxHeight/4,BoxDepth/40);
+  const tableLeg2 = tableLeg1.clone();
+  const tableLeg3 = tableLeg1.clone();
+  const tableLeg4 = tableLeg1.clone();
+  table.add(tablePlane);
+  table.add(tableLeg1);
+  table.add(tableLeg2);
+  table.add(tableLeg3);
+  table.add(tableLeg4);
+  tablePlane.position.set(0,BoxHeight/4+WallThickness/2,0);
+  tableLeg1.position.set(BoxDepth/4,BoxHeight/8,BoxDepth/4);
+  tableLeg2.position.set(-BoxDepth/4,BoxHeight/8,BoxDepth/4);
+  tableLeg3.position.set(-BoxDepth/4,BoxHeight/8,-BoxDepth/4);
+  tableLeg4.position.set(BoxDepth/4,BoxHeight/8,-BoxDepth/4);
 
-    CornelBox.add(table);
-  }
+  CornelBox.add(table);
 
   CornelBox.position.set(0,-BoxHeight/2-WallThickness/2,0)
 
@@ -232,6 +231,7 @@ CornelBox.add(ceilingBoard4);
   colorSetting.addColor(leftwallMaterial, 'color').name('Left Wall Color');
   
   requestAnimationFrame(render);
+  
 }
 
 function resizeRendererToDisplaySize(renderer) {
